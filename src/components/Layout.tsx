@@ -16,12 +16,12 @@ export function Layout({ children, sidebar }: LayoutProps) {
             <img
               src="/_logos/qyren-logo-transparent-dark-2766w.png"
               alt="Qyren"
-              className="h-10 w-auto logo-light"
+              className="h-11 w-auto logo-light"
             />
             <img
               src="/_logos/qyren-logo-transparent-light-2766w.png"
               alt="Qyren"
-              className="h-10 w-auto logo-dark"
+              className="h-11 w-auto logo-dark"
             />
           </Link>
           <div className="flex items-center gap-3">
