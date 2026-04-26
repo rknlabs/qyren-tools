@@ -2,7 +2,7 @@
 
 Free tools for free-to-play monetization operators. Built and curated by [Qyren](https://qyren.ai).
 
-This repo powers [tools.qyren.ai](https://tools.qyren.ai) — a directory of free utilities for F2P monetization work, plus tools we build ourselves when the gaps are too big to point at.
+This repo powers [tools.qyren.ai](https://tools.qyren.ai), a directory of free utilities for F2P monetization work, plus tools we build ourselves when the gaps are too big to point at.
 
 > **Status**: Initial build. The directory site is not yet live. This README will be updated as Sprint 1 ships.
 
@@ -12,13 +12,13 @@ A two-part program:
 
 1. **A curated directory** of existing free tools for IAP catalog management, SKAN attribution, A/B testing, LTV modeling, pricing localization, and LiveOps. Pointing at the best of what already exists so operators don't have to re-discover it every quarter.
 
-2. **Tools we build ourselves**, one at a time, where the gap is real and unowned. Sequence is data-informed — the directory's traffic and capture data tell us which gap to fill next.
+2. **Tools we build ourselves**, one at a time, where the gap is real and unowned. Sequence is data-informed. The directory's traffic and capture data tell us which gap to fill next.
 
 ## Why
 
-F2P monetization has identifiable workflow gaps that big vendors haven't filled — bulk IAP editing on iOS, PPP-aware price localization, conversion-value schema design, FX-drift handling for high-volatility currencies. Each is solvable. Each, shipped well, saves an operator hours per week.
+F2P monetization has identifiable workflow gaps that big vendors haven't filled, including bulk IAP editing on iOS, PPP-aware price localization, conversion-value schema design, and FX-drift handling for high-volatility currencies. Each is solvable. Each, shipped well, saves an operator hours per week.
 
-We're betting that tools earn trust faster than content does. The pattern is empirically validated by PostHog, Ahrefs, GrowthBook, and others — free utilities rank for high-intent keywords, get adopted into daily workflow, and the vendor becomes the trusted infrastructure layer.
+We're betting that tools earn trust faster than content does. The pattern is empirically validated by PostHog, Ahrefs, GrowthBook, and others. Free utilities rank for high-intent keywords, get adopted into daily workflow, and the vendor becomes the trusted infrastructure layer.
 
 ## Roadmap (rough, in build order)
 
@@ -47,7 +47,7 @@ MIT. See [LICENSE](./LICENSE).
 
 Curation suggestions (free tools that should be in the directory and aren't), bug reports, and small PRs are welcome.
 
-For anything larger than a typo fix, please open an issue first. The program has explicit scope decisions — what's in, what's deferred, what's deliberately rejected — that aren't always obvious from the code alone, and a quick conversation saves work on both sides.
+For anything larger than a typo fix, please open an issue first. The program has explicit scope decisions about what's in, what's deferred, and what's deliberately rejected, and those aren't always obvious from the code alone. A quick conversation saves work on both sides.
 
 ## Security
 
@@ -55,4 +55,4 @@ If you find a security issue, please don't open a public issue. See [SECURITY.md
 
 ## Contact
 
-Ramesh — `ramesh@qyren.ai`.
+Ramesh, `ramesh@qyren.ai`.

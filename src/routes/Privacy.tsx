@@ -6,7 +6,7 @@ export function Privacy() {
     <Layout>
       <div className="max-w-3xl mx-auto px-6 py-16">
         <h1 className="text-3xl font-semibold tracking-tight mb-6">Privacy</h1>
-        <p className="text-zinc-400 leading-relaxed">
+        <p className="text-fg/70 leading-relaxed">
           Privacy policy is being drafted. The short version: we capture email
           addresses you choose to give us, log anonymized tool usage to improve
           what we build, and don't sell or share your data with anyone.

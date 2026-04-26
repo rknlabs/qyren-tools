@@ -1,1 +1,26 @@
 @import "tailwindcss";
+
+@theme {
+  /* Brand surfaces */
+  --color-void: #060B18;
+  --color-surface: #0F1A2E;
+  --color-divider: #1A2540;
+
+  /* Brand accents */
+  --color-gold: #D4A017;
+  --color-cyan: #00D4FF;
+  --color-success: #00BFA5;
+  --color-alert: #FF4466;
+
+  /* Foreground */
+  --color-fg: #E8ECF4;
+
+  /* Fonts */
+  --font-cinzel: "Cinzel", serif;
+  --font-outfit: "Outfit", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+body {
+  font-family: var(--font-outfit);
+}

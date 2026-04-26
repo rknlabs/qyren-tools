@@ -36,7 +36,7 @@ This is a public repository. Anything committed is permanent and is scanned by a
 - `.env`, `.env.local`, `.env.production`
 - Supabase service-role keys or JWT secrets
 - Resend API keys
-- PostHog personal API keys (the project key is fine — designed to be public)
+- PostHog personal API keys (the project key is fine, designed to be public)
 - Any `.p8`, `.pem`, `.key`, `.p12`, `.pfx`, `.cer`, or `.crt` file
 - App Store Connect API keys
 
@@ -48,7 +48,7 @@ This is a public repository. Anything committed is permanent and is scanned by a
 
 ## If you accidentally commit a secret
 
-1. Rotate it at the vendor immediately. The leaked value is already in bot databases — `git rm` and force-push do not recall it.
+1. Rotate it at the vendor immediately. The leaked value is already in bot databases. `git rm` and force-push do not recall it.
 2. Notify us at `security@qyren.ai`.
 3. Don't try to "delete the commit" before rotating. Rotation comes first; cleanup is secondary.
 

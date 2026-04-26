@@ -71,7 +71,7 @@ export const LICENSE_LABELS: Record<LicenseTag, string> = {
 }
 
 // Vertical slice across 8 categories. Sprint 1 Section C1.
-// URLs and licenses to verify before publishing — flagged in commit message.
+// URLs and licenses to verify before publishing. Flagged in commit message.
 export const tools: Tool[] = [
   {
     slug: 'kenn-app-store-pricing-matrix',
@@ -82,7 +82,7 @@ export const tools: Tool[] = [
     workflows: ['pricing-localization'],
     regions: ['global'],
     qyrenTake:
-      "Useful when you're scripting price localization and need a static lookup. Less useful for live work — you'll be rebuilding the data yourself when Apple resets tiers.",
+      "Useful when you're scripting price localization and need a static lookup. Less useful for live work. You'll be rebuilding the data yourself when Apple resets tiers.",
   },
   {
     slug: 'fastlane-deliver',
@@ -93,7 +93,7 @@ export const tools: Tool[] = [
     workflows: ['iap-catalog'],
     regions: ['global'],
     qyrenTake:
-      'The workhorse for any iOS metadata or IAP automation. The IAP support specifically is incomplete — no bulk price tier updates, no localization sync — but it remains the most-used CLI in the iOS world and worth knowing before building anything custom.',
+      'The workhorse for any iOS metadata or IAP automation. The IAP support specifically is incomplete, with no bulk price tier updates and no localization sync, but it remains the most-used CLI in the iOS world and worth knowing before building anything custom.',
   },
   {
     slug: 'dfabulich-node-asc-api',
@@ -104,7 +104,7 @@ export const tools: Tool[] = [
     workflows: ['iap-catalog'],
     regions: ['global'],
     qyrenTake:
-      'Best starting point if you are building anything custom against ASC. Sane TypeScript ergonomics, JWT signing handled for you. Does not solve the bulk-IAP-editor problem on its own — that is a UI gap, not an API gap.',
+      'Best starting point if you are building anything custom against ASC. Sane TypeScript ergonomics, JWT signing handled for you. Does not solve the bulk-IAP-editor problem on its own. That is a UI gap, not an API gap.',
   },
   {
     slug: 'homa-skan-conversion-schema',
@@ -126,7 +126,7 @@ export const tools: Tool[] = [
     workflows: ['analytics-telemetry', 'ab-testing'],
     regions: ['global'],
     qyrenTake:
-      'Heavy for a small studio — a 1–2 person team is better off on the free SaaS tier than self-hosting — but the right pick if you have outgrown a closed analytics vendor and want to own your event data. The OSS license is the unlock.',
+      'Heavy for a small studio. A 1–2 person team is better off on the free SaaS tier than self-hosting. Still the right pick if you have outgrown a closed analytics vendor. Owning the event data is the point.',
   },
   {
     slug: 'gameanalytics-free',
@@ -137,7 +137,7 @@ export const tools: Tool[] = [
     workflows: ['analytics-telemetry'],
     regions: ['global'],
     qyrenTake:
-      'Free tier covers most studios under 100k MAU. Less flexible than a general-purpose tool like PostHog, but you do not have to model F2P concepts from scratch — the dashboards already speak DAU, ARPDAU, D1, D7, and the SDK ships defaults that match.',
+      'Free tier covers most studios under 100k MAU. Less flexible than a general-purpose tool like PostHog, but you do not have to model F2P concepts from scratch. The dashboards already speak DAU, ARPDAU, D1, D7, and the SDK ships defaults that match.',
   },
   {
     slug: 'evan-miller-ab-calculator',
@@ -148,12 +148,12 @@ export const tools: Tool[] = [
     workflows: ['ab-testing'],
     regions: ['global'],
     qyrenTake:
-      'Good for two-arm tests with binary outcomes (install→purchase, retention rates). Does not handle continuous outcomes (revenue, session length) or sequential testing — for those you want CUPED or a real experimentation platform.',
+      'Good for two-arm tests with binary outcomes (install→purchase, retention rates). Does not handle continuous outcomes (revenue, session length) or sequential testing. For those you want CUPED or a real experimentation platform.',
   },
   {
     slug: 'eseufert-theseus-growth',
     name: 'ESeufert/theseus_growth',
-    description: 'Python library for cohort LTV modeling — fits curves to cohort revenue and projects forward.',
+    description: 'Python library for cohort LTV modeling that fits curves to cohort revenue and projects forward.',
     url: 'https://github.com/ESeufert/theseus_growth',
     license: 'mit',
     workflows: ['economy-cohort'],
@@ -181,6 +181,6 @@ export const tools: Tool[] = [
     workflows: ['compliance'],
     regions: ['china'],
     qyrenTake:
-      "Useful for due diligence on Chinese partner publishers and tracking 版号 issuance volumes by quarter. Does not help you get a license — for that you need a Chinese publishing partner with NPPA standing.",
+      "Useful for due diligence on Chinese partner publishers and tracking 版号 issuance volumes by quarter. Does not help you get a license. For that you need a Chinese publishing partner with NPPA standing.",
   },
 ]

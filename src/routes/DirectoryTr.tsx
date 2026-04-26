@@ -9,11 +9,11 @@ export function DirectoryTr() {
           <h1 className="text-4xl font-semibold tracking-tight mb-4">
             Qyren Tools
           </h1>
-          <p className="text-zinc-400 leading-relaxed">
+          <p className="text-fg/70 leading-relaxed">
             Türk oyun stüdyoları için ücretsiz monetizasyon araçları.
           </p>
-          <p className="text-zinc-500 text-sm mt-8">
-            Çok yakında — Sprint 1 devam ediyor.
+          <p className="text-fg/50 text-sm mt-8">
+            Çok yakında. Sprint 1 devam ediyor.
           </p>
         </div>
       </div>
