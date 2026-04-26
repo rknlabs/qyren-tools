@@ -1,3 +1,15 @@
+import {
+  Coins,
+  ShoppingBag,
+  BarChart3,
+  LineChart,
+  GitCompare,
+  Users,
+  Repeat,
+  ShieldCheck,
+  type LucideIcon,
+} from 'lucide-react'
+
 export type WorkflowTag =
   | 'pricing-localization'
   | 'iap-catalog'
@@ -27,11 +39,15 @@ export type LicenseTag =
   | 'closed-source'
   | 'other'
 
+export type ToolKind = 'curated' | 'built'
+
 export interface Tool {
   slug: string
+  kind: ToolKind
   name: string
   description: string
   url: string
+  status?: 'live' | 'coming-soon'
   license: LicenseTag
   workflows: WorkflowTag[]
   regions: RegionTag[]
@@ -60,6 +76,17 @@ export const REGION_LABELS: Record<RegionTag, string> = {
   russia: 'Russia',
 }
 
+export const WORKFLOW_ICONS: Record<WorkflowTag, LucideIcon> = {
+  'pricing-localization': Coins,
+  'iap-catalog': ShoppingBag,
+  'skan-attribution': BarChart3,
+  'analytics-telemetry': LineChart,
+  'ab-testing': GitCompare,
+  'economy-cohort': Users,
+  liveops: Repeat,
+  compliance: ShieldCheck,
+}
+
 export const LICENSE_LABELS: Record<LicenseTag, string> = {
   mit: 'MIT',
   'apache-2.0': 'Apache 2.0',
@@ -74,7 +101,22 @@ export const LICENSE_LABELS: Record<LicenseTag, string> = {
 // URLs and licenses to verify before publishing. Flagged in commit message.
 export const tools: Tool[] = [
   {
+    slug: 'ppp-fx-localizer',
+    kind: 'built',
+    name: 'PPP + FX-Drift Price Localizer',
+    description:
+      'Reprice your IAP catalog by purchasing-power parity. FX-drift alerts on volatile currencies.',
+    url: '/tools/ppp-fx-localizer',
+    status: 'coming-soon',
+    license: 'mit',
+    workflows: ['pricing-localization', 'iap-catalog'],
+    regions: ['global', 'turkey'],
+    qyrenTake:
+      'Built with Turkish studios in mind. Lira-proof your ladder, then lock the rest of your global price ladder against PPP drift.',
+  },
+  {
     slug: 'kenn-app-store-pricing-matrix',
+    kind: 'curated',
     name: 'kenn/app_store_pricing_matrix',
     description: "Reference table of Apple's price tiers across all currencies, parsed from App Store Connect.",
     url: 'https://github.com/kenn/app_store_pricing_matrix',
@@ -86,6 +128,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'fastlane-deliver',
+    kind: 'curated',
     name: 'fastlane deliver',
     description: 'CLI for uploading metadata, screenshots, and IAP details to App Store Connect.',
     url: 'https://docs.fastlane.tools/actions/deliver/',
@@ -97,6 +140,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'dfabulich-node-asc-api',
+    kind: 'curated',
     name: 'dfabulich/node-app-store-connect-api',
     description: 'Modern Node.js client for the App Store Connect API with built-in JWT signing.',
     url: 'https://github.com/dfabulich/node-app-store-connect-api',
@@ -108,6 +152,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'homa-skan-conversion-schema',
+    kind: 'curated',
     name: 'Homa: SKAN conversion schema in 4 steps',
     description: "Public engineering writeup from Homa Games on building a SKAN conversion-value schema from LTV.",
     url: 'https://medium.com/homa-engineering/navigating-skadnetwork-build-your-games-conversion-schema-in-4-easy-steps-96074acf7f65',
@@ -119,6 +164,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'posthog-oss',
+    kind: 'curated',
     name: 'PostHog',
     description: 'Open-source product analytics with feature flags, A/B testing, and session replay.',
     url: 'https://posthog.com',
@@ -130,6 +176,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'gameanalytics-free',
+    kind: 'curated',
     name: 'GameAnalytics',
     description: 'F2P-specific analytics with cohort, LTV, and ARPDAU dashboards out of the box.',
     url: 'https://gameanalytics.com',
@@ -141,6 +188,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'evan-miller-ab-calculator',
+    kind: 'curated',
     name: 'Evan Miller A/B sample-size calculator',
     description: 'The canonical browser-based sample-size and significance calculator for A/B tests.',
     url: 'https://www.evanmiller.org/ab-testing/sample-size.html',
@@ -152,6 +200,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'eseufert-theseus-growth',
+    kind: 'curated',
     name: 'ESeufert/theseus_growth',
     description: 'Python library for cohort LTV modeling that fits curves to cohort revenue and projects forward.',
     url: 'https://github.com/ESeufert/theseus_growth',
@@ -163,6 +212,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'firebase-remote-config',
+    kind: 'curated',
     name: 'Firebase Remote Config + A/B Testing',
     description: 'Free LiveOps config-flag and experimentation layer integrated with Google Analytics.',
     url: 'https://firebase.google.com/docs/remote-config',
@@ -174,6 +224,7 @@ export const tools: Tool[] = [
   },
   {
     slug: 'appinchina-game-license-db',
+    kind: 'curated',
     name: 'AppInChina Game License Database',
     description: 'Searchable English-language database of Chinese game license (版号 / ISBN) approvals since 2009.',
     url: 'https://game-licenses.appinchina.co/',

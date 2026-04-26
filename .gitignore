@@ -31,3 +31,7 @@ CLAUDE.local.md
 # Working planning docs (candid drafts, not for public consumption)
 docs/planning/
 docs/brand/
+
+# Playwright/MCP scratch artifacts
+.playwright-mcp/
+qyren-*.png

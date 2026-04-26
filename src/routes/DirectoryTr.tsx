@@ -6,13 +6,13 @@ export function DirectoryTr() {
     <Layout>
       <div className="min-h-[70vh] flex items-center justify-center px-6 py-16">
         <div className="max-w-2xl text-center">
-          <h1 className="text-4xl font-semibold tracking-tight mb-4">
+          <h1 className="text-4xl font-semibold tracking-tight mb-4 text-fg">
             Qyren Tools
           </h1>
-          <p className="text-fg/70 leading-relaxed">
+          <p className="text-fg-muted leading-relaxed">
             Türk oyun stüdyoları için ücretsiz monetizasyon araçları.
           </p>
-          <p className="text-fg/50 text-sm mt-8">
+          <p className="text-fg-subtle text-sm mt-8">
             Çok yakında. Sprint 1 devam ediyor.
           </p>
         </div>

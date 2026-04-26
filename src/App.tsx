@@ -4,6 +4,7 @@ import { DirectoryTr } from './routes/DirectoryTr'
 import { DirectoryCn } from './routes/DirectoryCn'
 import { Privacy } from './routes/Privacy'
 import { Terms } from './routes/Terms'
+import { ToolDetail } from './routes/ToolDetail'
 import { NotFound } from './routes/NotFound'
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Route path="/cn" element={<DirectoryCn />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
+        <Route path="/tools/:slug" element={<ToolDetail />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
