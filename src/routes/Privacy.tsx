@@ -4,7 +4,7 @@ import { Layout } from '../components/Layout'
 export function Privacy() {
   return (
     <Layout>
-      <div className="max-w-3xl w-full">
+      <div className="max-w-3xl mx-auto px-6 py-16">
         <h1 className="text-3xl font-semibold tracking-tight mb-6">Privacy</h1>
         <p className="text-zinc-400 leading-relaxed">
           Privacy policy is being drafted. The short version: we capture email
