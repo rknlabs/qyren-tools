@@ -1,19 +1,23 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Directory } from './routes/Directory'
+import { DirectoryTr } from './routes/DirectoryTr'
+import { DirectoryCn } from './routes/DirectoryCn'
+import { Privacy } from './routes/Privacy'
+import { Terms } from './routes/Terms'
+import { NotFound } from './routes/NotFound'
+
 function App() {
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center px-6">
-      <div className="max-w-2xl text-center">
-        <h1 className="text-4xl font-semibold tracking-tight mb-4">
-          Qyren Tools
-        </h1>
-        <p className="text-zinc-400 leading-relaxed">
-          Free tools for free-to-play monetization operators. A curated
-          directory plus utilities we build ourselves.
-        </p>
-        <p className="text-zinc-500 text-sm mt-8">
-          Coming soon — Sprint 1 in progress.
-        </p>
-      </div>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Directory />} />
+        <Route path="/tr" element={<DirectoryTr />} />
+        <Route path="/cn" element={<DirectoryCn />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 
