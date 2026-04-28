@@ -1,8 +1,15 @@
 import { Layout } from '../components/Layout'
+import { SEO } from '../components/SEO'
 
 export function Privacy() {
   return (
     <Layout>
+      <SEO
+        title="Privacy"
+        description="How we handle your data at tools.qyren.ai. Email captures, anonymized usage, retention windows, and your rights."
+        path="/privacy"
+        locale="en"
+      />
       <div className="max-w-3xl mx-auto px-6 py-16">
         <h1 className="text-3xl font-semibold tracking-tight mb-2 text-fg">Privacy</h1>
         <p className="text-sm text-fg-subtle mb-10">Last updated: April 28, 2026</p>

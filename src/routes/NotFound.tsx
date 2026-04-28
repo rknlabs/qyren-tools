@@ -1,9 +1,17 @@
 import { Link } from 'react-router-dom'
 import { Layout } from '../components/Layout'
+import { SEO } from '../components/SEO'
 
 export function NotFound() {
   return (
     <Layout>
+      <SEO
+        title="Page not found"
+        description="The page you are looking for does not exist."
+        path="/404"
+        locale="en"
+        noindex
+      />
       <div className="min-h-[70vh] flex items-center justify-center px-6 py-16">
         <div className="max-w-2xl text-center">
           <h1 className="text-4xl font-semibold tracking-tight mb-4 text-fg">404</h1>

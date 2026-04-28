@@ -3,6 +3,7 @@ import { Layout } from '../components/Layout'
 import { Sidebar, type SidebarFilter } from '../components/Sidebar'
 import { ToolCard } from '../components/ToolCard'
 import { CaptureForm } from '../components/CaptureForm'
+import { SEO } from '../components/SEO'
 import { tools } from '../content/tools'
 
 export function Directory() {
@@ -29,6 +30,37 @@ export function Directory() {
 
   return (
     <Layout sidebar={<Sidebar active={filter} onSelect={setFilter} />}>
+      <SEO
+        title="Free tools for F2P monetization"
+        description="Curated directory of free utilities for IAP catalog work, SKAN attribution, A/B testing, LTV modeling, pricing localization, and LiveOps. Plus tools we build ourselves."
+        path="/"
+        locale="en"
+        structuredData={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Qyren Tools',
+            description:
+              'Curated directory of free utilities for free-to-play monetization operators.',
+            url: 'https://tools.qyren.ai/',
+            publisher: {
+              '@type': 'Organization',
+              name: 'Qyren',
+              url: 'https://qyren.ai',
+            },
+          },
+          ...tools.map((tool) => ({
+            '@context': 'https://schema.org',
+            '@type': 'SoftwareApplication',
+            name: tool.name,
+            description: tool.description,
+            url: tool.kind === 'built' ? `https://tools.qyren.ai${tool.url}` : tool.url,
+            applicationCategory: 'DeveloperApplication',
+            operatingSystem: 'Any',
+            offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+          })),
+        ]}
+      />
       <div className="px-6 lg:px-10 py-12">
         <header className="mb-10 max-w-3xl">
           <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight mb-3 text-gold">

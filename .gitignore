@@ -37,3 +37,6 @@ docs/brand/
 qyren-*.png
 .vercel
 .env*.local
+
+# Generated at build
+public/sitemap.xml

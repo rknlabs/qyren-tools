@@ -1,8 +1,15 @@
 import { Layout } from '../components/Layout'
+import { SEO } from '../components/SEO'
 
 export function Terms() {
   return (
     <Layout>
+      <SEO
+        title="Terms"
+        description="Terms of service for tools.qyren.ai. Curated directory plus utilities we build ourselves."
+        path="/terms"
+        locale="en"
+      />
       <div className="max-w-3xl mx-auto px-6 py-16">
         <h1 className="text-3xl font-semibold tracking-tight mb-2 text-fg">Terms</h1>
         <p className="text-sm text-fg-subtle mb-10">Last updated: April 28, 2026</p>
