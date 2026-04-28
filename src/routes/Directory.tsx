@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { Layout } from '../components/Layout'
 import { Sidebar, type SidebarFilter } from '../components/Sidebar'
 import { ToolCard } from '../components/ToolCard'
+import { CaptureForm } from '../components/CaptureForm'
 import { tools } from '../content/tools'
 
 export function Directory() {
@@ -44,6 +45,9 @@ export function Directory() {
           {filtered.map((t) => (
             <ToolCard key={t.slug} tool={t} />
           ))}
+        </div>
+        <div className="mt-12 max-w-2xl">
+          <CaptureForm capturedFromTool="directory" sourceLocale="en" variant="inline" />
         </div>
       </div>
     </Layout>

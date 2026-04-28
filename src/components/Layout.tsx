@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { ThemeToggle } from './ThemeToggle'
+import { CaptureForm } from './CaptureForm'
 
 interface LayoutProps {
   children: ReactNode
@@ -41,15 +42,18 @@ export function Layout({ children, sidebar }: LayoutProps) {
         <main className="flex-1 min-w-0">{children}</main>
       </div>
 
-      <footer className="border-t border-divider px-6 py-6 text-sm text-fg-muted">
-        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
-          <div>© 2026 Qyren</div>
-          <div className="flex flex-wrap gap-4">
-            <Link to="/" className="hover:text-cyan">English</Link>
-            <Link to="/tr" className="hover:text-cyan">Türkçe</Link>
-            <Link to="/cn" className="hover:text-cyan">简体中文</Link>
-            <Link to="/privacy" className="hover:text-cyan">Privacy</Link>
-            <Link to="/terms" className="hover:text-cyan">Terms</Link>
+      <footer className="border-t border-divider px-6 py-8 text-sm text-fg-muted">
+        <div className="max-w-6xl mx-auto flex flex-col gap-6">
+          <CaptureForm variant="compact" />
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-divider">
+            <div>© 2026 Qyren</div>
+            <div className="flex flex-wrap gap-4">
+              <Link to="/" className="hover:text-cyan">English</Link>
+              <Link to="/tr" className="hover:text-cyan">Türkçe</Link>
+              <Link to="/cn" className="hover:text-cyan">简体中文</Link>
+              <Link to="/privacy" className="hover:text-cyan">Privacy</Link>
+              <Link to="/terms" className="hover:text-cyan">Terms</Link>
+            </div>
           </div>
         </div>
       </footer>

@@ -35,3 +35,5 @@ docs/brand/
 # Playwright/MCP scratch artifacts
 .playwright-mcp/
 qyren-*.png
+.vercel
+.env*.local

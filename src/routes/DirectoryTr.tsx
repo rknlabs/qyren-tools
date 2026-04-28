@@ -1,10 +1,11 @@
 import { Layout } from '../components/Layout'
+import { CaptureForm } from '../components/CaptureForm'
 
 // Placeholder copy. Replaced by native-Turkish freelancer in Sprint 1 Section D1.
 export function DirectoryTr() {
   return (
     <Layout>
-      <div className="min-h-[70vh] flex items-center justify-center px-6 py-16">
+      <div className="min-h-[70vh] flex flex-col items-center justify-center px-6 py-16 gap-10">
         <div className="max-w-2xl text-center">
           <h1 className="text-4xl font-semibold tracking-tight mb-4 text-fg">
             Qyren Tools
@@ -15,6 +16,9 @@ export function DirectoryTr() {
           <p className="text-fg-subtle text-sm mt-8">
             Çok yakında. Sprint 1 devam ediyor.
           </p>
+        </div>
+        <div className="w-full max-w-2xl">
+          <CaptureForm capturedFromTool="directory" sourceLocale="tr" variant="inline" />
         </div>
       </div>
     </Layout>
