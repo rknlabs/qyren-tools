@@ -52,7 +52,22 @@ export interface Tool {
   workflows: WorkflowTag[]
   regions: RegionTag[]
   qyrenTake: string
+  sortPriority?: number
 }
+
+// Strategic-relevance order, not alphabetical. Drives both sidebar order and
+// section render order on the directory page. Pricing + IAP first because they
+// are daily F2P operator pain; compliance last because it is quarterly.
+export const SECTION_ORDER: WorkflowTag[] = [
+  'pricing-localization',
+  'iap-catalog',
+  'skan-attribution',
+  'analytics-telemetry',
+  'ab-testing',
+  'liveops',
+  'economy-cohort',
+  'compliance',
+]
 
 export const WORKFLOW_LABELS: Record<WorkflowTag, string> = {
   'pricing-localization': 'Pricing & Localization',
@@ -60,8 +75,8 @@ export const WORKFLOW_LABELS: Record<WorkflowTag, string> = {
   'skan-attribution': 'SKAN & Attribution',
   'analytics-telemetry': 'Analytics & Telemetry',
   'ab-testing': 'A/B Testing',
-  'economy-cohort': 'Economy & Cohort',
   liveops: 'LiveOps',
+  'economy-cohort': 'Economy & Cohort',
   compliance: 'Compliance',
 }
 
@@ -109,10 +124,11 @@ export const tools: Tool[] = [
     url: '/tools/ppp-fx-localizer',
     status: 'coming-soon',
     license: 'mit',
-    workflows: ['pricing-localization', 'iap-catalog'],
+    workflows: ['pricing-localization'],
     regions: ['global', 'turkey'],
     qyrenTake:
       'Built with Turkish studios in mind. Lira-proof your ladder, then lock the rest of your global price ladder against PPP drift.',
+    sortPriority: 0,
   },
   {
     slug: 'kenn-app-store-pricing-matrix',
@@ -125,6 +141,7 @@ export const tools: Tool[] = [
     regions: ['global'],
     qyrenTake:
       "Useful when you're scripting price localization and need a static lookup. Less useful for live work. You'll be rebuilding the data yourself when Apple resets tiers.",
+    sortPriority: 2,
   },
   {
     slug: 'fastlane-deliver',
@@ -137,6 +154,7 @@ export const tools: Tool[] = [
     regions: ['global'],
     qyrenTake:
       'Best for app metadata and binary submission. The 10-year-old gap: it does not handle in-app purchase metadata. You will end up writing custom ASC API calls anyway.',
+    sortPriority: 7,
   },
   {
     slug: 'dfabulich-node-asc-api',
@@ -149,6 +167,7 @@ export const tools: Tool[] = [
     regions: ['global'],
     qyrenTake:
       'Best Node entry point for ASC. Thin, well-typed, no opinions. You still write your own bulk logic on top.',
+    sortPriority: 5,
   },
   {
     slug: 'homa-skan-conversion-schema',
@@ -245,6 +264,7 @@ export const tools: Tool[] = [
     regions: ['global'],
     qyrenTake:
       "A working pattern, not a product. JWT signing and price-point assignment logic worth lifting. Pair with the companion Google Play gist and the author's blog post for full context.",
+    sortPriority: 1,
   },
   {
     slug: 'ponytech-python-asc-api',
@@ -257,6 +277,7 @@ export const tools: Tool[] = [
     regions: ['global'],
     qyrenTake:
       'The Python counterpart to dfabulich/node-app-store-connect-api. Reach for it when your stack already lives in Python. Pagination and rate-limit handling are your problem.',
+    sortPriority: 6,
   },
   {
     slug: 'amowu-app-store-pricing-matrix',
@@ -269,6 +290,7 @@ export const tools: Tool[] = [
     regions: ['global'],
     qyrenTake:
       "JSON alternate to kenn's Ruby version. Cross-check both when you suspect tier drift before pushing a global price change.",
+    sortPriority: 3,
   },
   {
     slug: 'unity-iap-catalog-csv',
@@ -281,6 +303,7 @@ export const tools: Tool[] = [
     regions: ['global'],
     qyrenTake:
       'Useful for snapshotting and audit. Not a bulk-edit-back surface. Treat the export as read-only and apply changes via store APIs.',
+    sortPriority: 9,
   },
   {
     slug: 'playfab-economy-v2-batch',
@@ -293,6 +316,7 @@ export const tools: Tool[] = [
     regions: ['global'],
     qyrenTake:
       'Real bulk surface if you already live in PlayFab. Migration cost from a non-PlayFab stack is rarely worth it just for catalog ops.',
+    sortPriority: 8,
   },
   {
     slug: 'statsig-ab-calculator',
@@ -365,6 +389,7 @@ export const tools: Tool[] = [
     regions: ['turkey'],
     qyrenTake:
       'Owns Turkish card processing for non-store flows. SDKs are Apache-2.0; the gateway itself is paid with a free tier. Read the AML docs first.',
+    sortPriority: 10,
   },
   {
     slug: 'mobidictum',
@@ -389,6 +414,7 @@ export const tools: Tool[] = [
     regions: ['global'],
     qyrenTake:
       'Cleaner than ASC. One API call updates subscription pricing across all 170+ countries. Service account auth is straightforward. Where Apple makes you suffer, Google does not.',
+    sortPriority: 4,
   },
   {
     slug: 'amazon-appstore-iap-csv',
@@ -401,6 +427,7 @@ export const tools: Tool[] = [
     regions: ['global'],
     qyrenTake:
       "Functional, ugly. Amazon's surface is small enough that nobody automates it. Hand-edit the CSV and move on. Worth knowing exists if you ship Fire tablet or Kindle.",
+    sortPriority: 20,
   },
   {
     slug: 'unity-udp-bulk-import',
@@ -413,6 +440,7 @@ export const tools: Tool[] = [
     regions: ['global'],
     qyrenTake:
       'Helpful if you publish to Chinese Android stores via UDP. Otherwise overkill. The store coverage is the value, not the tool.',
+    sortPriority: 21,
   },
   {
     slug: 'sensors-data-sdks',
@@ -497,5 +525,6 @@ export const tools: Tool[] = [
     regions: ['mena'],
     qyrenTake:
       "Single API for direct carrier billing and e-wallets across Saudi, Egypt, Iraq, Jordan. The only credible non-store rail for the region's underbanked majority.",
+    sortPriority: 11,
   },
 ]

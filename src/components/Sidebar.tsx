@@ -1,67 +1,74 @@
 import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { tools, WORKFLOW_LABELS, WORKFLOW_ICONS, type WorkflowTag } from '../content/tools'
+import {
+  tools,
+  WORKFLOW_LABELS,
+  WORKFLOW_ICONS,
+  SECTION_ORDER,
+  type WorkflowTag,
+} from '../content/tools'
 
-export type SidebarFilter =
-  | { kind: 'all' }
-  | { kind: 'built' }
-  | { kind: 'curated' }
-  | { kind: 'workflow'; workflow: WorkflowTag }
+export type QuickView = 'all' | 'built' | 'curated'
 
 interface SidebarProps {
-  active: SidebarFilter
-  onSelect: (filter: SidebarFilter) => void
+  quickView: QuickView
+  onQuickView: (qv: QuickView) => void
+  activeWorkflow: WorkflowTag | null
+  onWorkflowClick: (w: WorkflowTag) => void
 }
 
-export function Sidebar({ active, onSelect }: SidebarProps) {
+export function Sidebar({
+  quickView,
+  onQuickView,
+  activeWorkflow,
+  onWorkflowClick,
+}: SidebarProps) {
   const builtCount = tools.filter((t) => t.kind === 'built').length
   const curatedCount = tools.filter((t) => t.kind === 'curated').length
 
   const workflowCounts: Record<WorkflowTag, number> = {} as Record<WorkflowTag, number>
-  for (const w of Object.keys(WORKFLOW_LABELS) as WorkflowTag[]) {
+  for (const w of SECTION_ORDER) {
     workflowCounts[w] = tools.filter((t) => t.workflows.includes(w)).length
   }
 
-  const isActive = (test: SidebarFilter) =>
-    JSON.stringify(test) === JSON.stringify(active)
-
   return (
-    <aside className="w-60 shrink-0 border-r border-divider bg-bg sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto py-6 px-4 hidden lg:block">
+    <div className="w-60 py-6 px-4">
       <SidebarSection title="Quick views">
         <SidebarItem
           label="All tools"
           count={tools.length}
-          active={isActive({ kind: 'all' })}
-          onClick={() => onSelect({ kind: 'all' })}
+          active={quickView === 'all'}
+          onClick={() => onQuickView('all')}
         />
         <SidebarItem
           label="Built by Qyren"
           count={builtCount}
-          active={isActive({ kind: 'built' })}
-          onClick={() => onSelect({ kind: 'built' })}
+          active={quickView === 'built'}
+          onClick={() => onQuickView('built')}
           accent
         />
         <SidebarItem
           label="Curated"
           count={curatedCount}
-          active={isActive({ kind: 'curated' })}
-          onClick={() => onSelect({ kind: 'curated' })}
+          active={quickView === 'curated'}
+          onClick={() => onQuickView('curated')}
         />
       </SidebarSection>
 
       <SidebarSection title="By workflow">
-        {(Object.keys(WORKFLOW_LABELS) as WorkflowTag[]).map((w) => (
+        {SECTION_ORDER.map((w) => (
           <SidebarItem
             key={w}
             icon={WORKFLOW_ICONS[w]}
             label={WORKFLOW_LABELS[w]}
             count={workflowCounts[w]}
-            active={isActive({ kind: 'workflow', workflow: w })}
-            onClick={() => onSelect({ kind: 'workflow', workflow: w })}
+            active={activeWorkflow === w}
+            onClick={() => onWorkflowClick(w)}
+            disabled={quickView === 'built'}
           />
         ))}
       </SidebarSection>
-    </aside>
+    </div>
   )
 }
 
@@ -83,6 +90,7 @@ function SidebarItem({
   active,
   onClick,
   accent,
+  disabled,
 }: {
   icon?: LucideIcon
   label: string
@@ -90,16 +98,20 @@ function SidebarItem({
   active: boolean
   onClick: () => void
   accent?: boolean
+  disabled?: boolean
 }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className={`flex items-center justify-between px-3 py-1.5 rounded-md text-sm transition text-left ${
-        active
-          ? 'bg-[var(--color-sidebar-active-bg)] text-[var(--color-sidebar-active-fg)] hover:bg-[var(--color-sidebar-active-bg)] font-medium'
-          : accent
-            ? 'text-gold hover:bg-surface'
-            : 'text-fg-muted hover:bg-surface hover:text-fg'
+        disabled
+          ? 'text-fg-subtle/50 cursor-not-allowed'
+          : active
+            ? 'bg-[var(--color-sidebar-active-bg)] text-[var(--color-sidebar-active-fg)] hover:bg-[var(--color-sidebar-active-bg)] font-medium'
+            : accent
+              ? 'text-gold hover:bg-surface'
+              : 'text-fg-muted hover:bg-surface hover:text-fg'
       }`}
     >
       <span className="flex items-center gap-2">
