@@ -62,9 +62,6 @@ export function SEO({
           <link rel="alternate" hrefLang="tr" href={`${SITE_URL}/tr`} />
         ) : null}
         {isLocaleRoot ? (
-          <link rel="alternate" hrefLang="zh-Hans" href={`${SITE_URL}/cn`} />
-        ) : null}
-        {isLocaleRoot ? (
           <link rel="alternate" hrefLang="x-default" href={`${SITE_URL}/`} />
         ) : null}
 
