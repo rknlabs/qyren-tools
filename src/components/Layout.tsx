@@ -117,6 +117,14 @@ export function Layout({ children, sidebar }: LayoutProps) {
               <Link to="/cn" className="hover:text-cyan">简体中文</Link>
               <Link to="/privacy" className="hover:text-cyan">Privacy</Link>
               <Link to="/terms" className="hover:text-cyan">Terms</Link>
+              <a
+                href="https://github.com/rknlabs/qyren-tools"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-cyan"
+              >
+                Source on GitHub
+              </a>
             </div>
           </div>
         </div>
