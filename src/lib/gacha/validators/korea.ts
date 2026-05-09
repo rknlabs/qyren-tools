@@ -56,7 +56,7 @@ export const KR4_languageCoverage: Validator = (ctx) => {
   if (ctx.region !== 'KR') return []
   const pool = ctx.rateSheet.pools.find((p) => p.pool_id === ctx.pool_id)
   if (!pool) return []
-  const missing = pool.items.filter((item) => !item.name_ko || item.name_ko.trim() === '')
+  const missing = pool.items.filter((item) => !nonEmpty(item.name_ko))
   if (missing.length === 0) {
     return [
       {
@@ -68,19 +68,27 @@ export const KR4_languageCoverage: Validator = (ctx) => {
       },
     ]
   }
+  const ids = missing.map((m) => m.item_id)
   return [
     {
       pool_id: ctx.pool_id,
       region: 'KR',
       validator_id: 'KR4',
       status: 'fail',
-      message: `${missing.length} item(s) lack Korean names (name_ko)`,
-      suggested_fix: `Add name_ko for: ${missing
-        .slice(0, 5)
-        .map((m) => m.item_id)
-        .join(', ')}${missing.length > 5 ? '…' : ''}`,
+      message: `${missing.length} item(s) lack Korean names (name_ko): ${formatIdList(ids)}`,
+      suggested_fix: `Add name_ko column values for the items above before publishing the Korean disclosure.`,
+      failed_item_ids: ids,
     },
   ]
+}
+
+function nonEmpty(s: string | undefined): boolean {
+  return typeof s === 'string' && s.trim() !== ''
+}
+
+function formatIdList(ids: string[]): string {
+  if (ids.length <= 8) return ids.join(', ')
+  return `${ids.slice(0, 8).join(', ')}, … (+${ids.length - 8} more)`
 }
 
 export const KR5_refreshDiscipline: Validator = (ctx) => {

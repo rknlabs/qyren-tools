@@ -9,6 +9,10 @@ export interface ValidationResult {
   status: ValidationStatus
   message: string
   suggested_fix?: string
+  // For locale-coverage and per-item validators: the specific item IDs that
+  // triggered the failure. Empty/undefined when the validator is not
+  // per-item (e.g. CN2 banner_id check, M1 sum check).
+  failed_item_ids?: string[]
 }
 
 export interface ValidatorContext {

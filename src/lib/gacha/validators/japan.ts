@@ -6,7 +6,7 @@ export const JP2_languageCoverage: Validator = (ctx) => {
   if (ctx.region !== 'JP') return []
   const pool = ctx.rateSheet.pools.find((p) => p.pool_id === ctx.pool_id)
   if (!pool) return []
-  const missing = pool.items.filter((item) => !item.name_ja || item.name_ja.trim() === '')
+  const missing = pool.items.filter((item) => !nonEmpty(item.name_ja))
   if (missing.length === 0) {
     return [
       {
@@ -18,19 +18,27 @@ export const JP2_languageCoverage: Validator = (ctx) => {
       },
     ]
   }
+  const ids = missing.map((m) => m.item_id)
   return [
     {
       pool_id: ctx.pool_id,
       region: 'JP',
       validator_id: 'JP2',
       status: 'fail',
-      message: `${missing.length} item(s) lack Japanese names (name_ja)`,
-      suggested_fix: `Add name_ja for: ${missing
-        .slice(0, 5)
-        .map((m) => m.item_id)
-        .join(', ')}${missing.length > 5 ? '…' : ''}`,
+      message: `${missing.length} item(s) lack Japanese names (name_ja): ${formatIdList(ids)}`,
+      suggested_fix: `Add name_ja column values for the items above before publishing the Japanese disclosure.`,
+      failed_item_ids: ids,
     },
   ]
+}
+
+function nonEmpty(s: string | undefined): boolean {
+  return typeof s === 'string' && s.trim() !== ''
+}
+
+function formatIdList(ids: string[]): string {
+  if (ids.length <= 8) return ids.join(', ')
+  return `${ids.slice(0, 8).join(', ')}, … (+${ids.length - 8} more)`
 }
 
 export const JP3_kompuGachaCheck: Validator = (ctx) => {

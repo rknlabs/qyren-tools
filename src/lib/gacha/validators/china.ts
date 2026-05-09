@@ -32,9 +32,7 @@ export const CN3_languageCoverage: Validator = (ctx) => {
   if (ctx.region !== 'CN') return []
   const pool = ctx.rateSheet.pools.find((p) => p.pool_id === ctx.pool_id)
   if (!pool) return []
-  const missing = pool.items.filter(
-    (item) => !item.name_zh_hans || item.name_zh_hans.trim() === '',
-  )
+  const missing = pool.items.filter((item) => !nonEmpty(item.name_zh_hans))
   if (missing.length === 0) {
     return [
       {
@@ -46,19 +44,27 @@ export const CN3_languageCoverage: Validator = (ctx) => {
       },
     ]
   }
+  const ids = missing.map((m) => m.item_id)
   return [
     {
       pool_id: ctx.pool_id,
       region: 'CN',
       validator_id: 'CN3',
       status: 'fail',
-      message: `${missing.length} item(s) lack Simplified Chinese names (name_zh_hans)`,
-      suggested_fix: `Add name_zh_hans for: ${missing
-        .slice(0, 5)
-        .map((m) => m.item_id)
-        .join(', ')}${missing.length > 5 ? '…' : ''}`,
+      message: `${missing.length} item(s) lack Simplified Chinese names (name_zh_hans): ${formatIdList(ids)}`,
+      suggested_fix: `Add name_zh_hans column values for the items above before publishing the Chinese disclosure.`,
+      failed_item_ids: ids,
     },
   ]
+}
+
+function nonEmpty(s: string | undefined): boolean {
+  return typeof s === 'string' && s.trim() !== ''
+}
+
+function formatIdList(ids: string[]): string {
+  if (ids.length <= 8) return ids.join(', ')
+  return `${ids.slice(0, 8).join(', ')}, … (+${ids.length - 8} more)`
 }
 
 export const CN4_dailyCapNotice: Validator = (ctx) => {
