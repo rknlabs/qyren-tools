@@ -16,7 +16,8 @@ export const en = {
   tool: {
     stepUpload: 'Step 1 — Upload rate sheet',
     stepRegions: 'Step 2 — Select regions',
-    stepOutput: 'Step 3 — Configure output',
+    stepDetails: 'Step 3 — Game details',
+    stepOutput: 'Step 4 — Configure output',
     uploadDrop: 'Drop a CSV here, or paste JSON below',
     uploadCta: 'Choose CSV file',
     pasteJson: 'Or paste a JSON rate sheet',

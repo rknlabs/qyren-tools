@@ -16,7 +16,8 @@ export const zhHans = {
   tool: {
     stepUpload: '第 1 步 — 上传概率表',
     stepRegions: '第 2 步 — 选择地区',
-    stepOutput: '第 3 步 — 配置输出',
+    stepDetails: '第 3 步 — 游戏信息',
+    stepOutput: '第 4 步 — 配置输出',
     uploadDrop: '将 CSV 拖放至此处，或在下方粘贴 JSON',
     uploadCta: '选择 CSV 文件',
     pasteJson: '或粘贴 JSON 概率表',

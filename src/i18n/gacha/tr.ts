@@ -18,7 +18,8 @@ export const tr = {
   tool: {
     stepUpload: 'Adım 1 — Oran tablosunu yükle',
     stepRegions: 'Adım 2 — Bölgeleri seç',
-    stepOutput: 'Adım 3 — Çıktıyı yapılandır',
+    stepDetails: 'Adım 3 — Oyun bilgileri',
+    stepOutput: 'Adım 4 — Çıktıyı yapılandır',
     uploadDrop: 'CSV dosyasını buraya bırak veya aşağıya JSON yapıştır',
     uploadCta: 'CSV dosyası seç',
     pasteJson: 'Ya da JSON oran tablosu yapıştır',

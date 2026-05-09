@@ -49,7 +49,9 @@ export function GameDetailsForm({
 
   return (
     <div className="rounded-lg border border-divider bg-surface/40 p-6">
-      <h2 className="text-base font-semibold text-fg mb-1">{t.heading}</h2>
+      <h2 className="text-base font-semibold text-fg mb-1">
+        {strings.tool.stepDetails}
+      </h2>
       <p className="text-xs text-fg-subtle mb-5">{t.sub}</p>
 
       {formTouched && missingRequired.size > 0 && (

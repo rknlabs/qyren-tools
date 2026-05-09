@@ -459,6 +459,11 @@ export function ToolPage({ locale }: ToolPageProps) {
               onError={(errors) => setParseFlash(errors[0]?.message ?? t.errors.malformed)}
             />
             {effSheet && <LoadedSheetSummary strings={strings} rateSheet={effSheet} />}
+            <RegionSelector
+              strings={strings}
+              selected={state.regions}
+              onChange={(regions) => dispatch({ type: 'REGIONS_CHANGED', regions })}
+            />
             {effSheet && (
               <GameDetailsForm
                 strings={strings}
@@ -477,11 +482,6 @@ export function ToolPage({ locale }: ToolPageProps) {
                 onOverseasToggle={(value) => dispatch({ type: 'OVERSEAS_TOGGLED', value })}
               />
             )}
-            <RegionSelector
-              strings={strings}
-              selected={state.regions}
-              onChange={(regions) => dispatch({ type: 'REGIONS_CHANGED', regions })}
-            />
             <OutputConfig
               strings={strings}
               value={state.output}
