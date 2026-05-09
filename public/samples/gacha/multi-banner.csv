@@ -1,0 +1,22 @@
+# studio_name=Example Studio
+# game_id=multi_banner_game
+# game_name_en=Multi Banner Demo
+# game_name_ko=멀티 배너 데모
+# game_name_ja=マルチバナーデモ
+# game_name_zh_hans=多卡池演示
+# rate_sheet_version=1.0.0
+# generated_at=2026-05-09T00:00:00Z
+# operator_name_en=Example Studio Inc.
+# operator_name_zh_hans=示例工作室有限公司
+# outcome_history_url=https://example.com/games/multi/history
+pool_id,banner_id,banner_name_en,banner_name_ko,banner_name_ja,banner_name_zh_hans,banner_start,banner_end,item_id,item_rarity,probability,name_en,name_ko,name_ja,name_zh_hans,alternative_acquisition
+char_banner_1,banner_a,Character Banner A,캐릭터 배너 A,キャラクターバナーA,角色卡池A,2026-05-01,2026-05-21,featured_char,5★,0.0070,Featured Character,주역 캐릭터,主役キャラクター,主角角色,event
+char_banner_1,banner_a,Character Banner A,캐릭터 배너 A,キャラクターバナーA,角色卡池A,2026-05-01,2026-05-21,standard_char_a,5★,0.0030,Standard Character A,일반 캐릭터 A,通常キャラクターA,常驻角色A,
+char_banner_1,banner_a,Character Banner A,캐릭터 배너 A,キャラクターバナーA,角色卡池A,2026-05-01,2026-05-21,char_4_a,4★,0.0510,4-Star Character A,4성 캐릭터 A,4星キャラクターA,四星角色A,
+char_banner_1,banner_a,Character Banner A,캐릭터 배너 A,キャラクターバナーA,角色卡池A,2026-05-01,2026-05-21,char_4_b,4★,0.0510,4-Star Character B,4성 캐릭터 B,4星キャラクターB,四星角色B,
+char_banner_1,banner_a,Character Banner A,캐릭터 배너 A,キャラクターバナーA,角色卡池A,2026-05-01,2026-05-21,filler_3,3★,0.8880,3-Star Filler,3성 필러,3星フィラー,三星填充,
+weapon_banner_1,banner_b,Weapon Banner A,무기 배너 A,武器バナーA,武器卡池A,2026-05-01,2026-05-21,featured_weapon,5★,0.0070,Featured Weapon,주역 무기,主役武器,主角武器,
+weapon_banner_1,banner_b,Weapon Banner A,무기 배너 A,武器バナーA,武器卡池A,2026-05-01,2026-05-21,std_weapon,5★,0.0030,Standard Weapon,일반 무기,通常武器,常驻武器,
+weapon_banner_1,banner_b,Weapon Banner A,무기 배너 A,武器バナーA,武器卡池A,2026-05-01,2026-05-21,wpn_4_a,4★,0.0600,4-Star Weapon A,4성 무기 A,4星武器A,四星武器A,
+weapon_banner_1,banner_b,Weapon Banner A,무기 배너 A,武器バナーA,武器卡池A,2026-05-01,2026-05-21,wpn_4_b,4★,0.0600,4-Star Weapon B,4성 무기 B,4星武器B,四星武器B,
+weapon_banner_1,banner_b,Weapon Banner A,무기 배너 A,武器バナーA,武器卡池A,2026-05-01,2026-05-21,wpn_3_filler,3★,0.8700,3-Star Weapon Filler,3성 무기 필러,3星武器フィラー,三星武器填充,

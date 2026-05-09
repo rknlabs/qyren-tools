@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8" />
+<title>{{game_name}} — 概率公示</title>
+<style>
+body{font-family:-apple-system,"PingFang SC","Noto Sans SC",sans-serif;color:#0B1225;background:#fff;max-width:720px;margin:0 auto;padding:32px;line-height:1.55}
+h1{font-size:22px;margin:0 0 8px;color:#0B1225}
+h2{font-size:15px;margin:24px 0 8px;color:#0B1225;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.meta{color:rgba(11,18,37,.65);font-size:13px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+th,td{padding:8px 10px;border-bottom:1px solid #E5E3DA;text-align:left}
+th{background:#F7F6F1;font-weight:600;color:#0B1225}
+td.right{text-align:right;font-variant-numeric:tabular-nums}
+.aggregate{font-size:14px;line-height:1.7}
+.aggregate li{margin:0}
+ul{padding-left:18px;margin:6px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #E5E3DA;color:rgba(11,18,37,.65);font-size:12px}
+.disclaimer{margin-top:12px;color:rgba(11,18,37,.65);font-size:11px;line-height:1.5}
+.hash{font-family:"JetBrains Mono",monospace;font-size:10px;word-break:break-all;color:rgba(11,18,37,.5)}
+</style>
+</head>
+<body>
+<h1>概率公示</h1>
+<div class="meta">
+游戏: {{game_name}}<br />
+卡池: {{banner_name}}<br />
+开放时间: {{banner_period}}<br />
+公示发布时间: {{generated_at}}
+</div>
+
+<h2>稀有度概率</h2>
+<ul class="aggregate">{{rarity_aggregates}}</ul>
+
+<h2>物品概率</h2>
+<table>
+<thead><tr><th>稀有度</th><th>物品</th><th class="right">概率</th></tr></thead>
+<tbody>{{item_rows}}</tbody>
+</table>
+
+<h2>每日抽卡上限 (依据工信部规定)</h2>
+<ul>
+<li>每日单抽次数上限: 30次</li>
+<li>每日十连次数上限: 3次</li>
+<li>每日累计抽卡上限: 50次</li>
+</ul>
+
+<h2>90 天抽卡历史</h2>
+<p>玩家90天内抽卡历史可在以下位置查询: {{outcome_history}}</p>
+
+{{alt_acquisition_section}}
+
+<div class="footer">
+运营方: {{operator_name}}<br />
+工具版本: Qyren Gacha Disclosure Pack v{{tool_version}}<br />
+公示哈希: <span class="hash">{{block_hash}}</span>
+</div>
+
+<div class="disclaimer">
+本公示符合《关于规范网络游戏运营加强事中事后监管工作的通知》(2016) 关于概率公示的要求。
+运营方对公示概率与实际游戏内概率的一致性负责。
+本公示并非法律意见，发布前应由运营方进行内部合规审查。
+</div>
+</body>
+</html>

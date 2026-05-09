@@ -1,0 +1,15 @@
+# studio_name=Example Studio
+# game_id=hard_pity_game
+# game_name_en=Hard Pity Demo
+# game_name_ja=ハード天井デモ
+# rate_sheet_version=1.0.0
+# generated_at=2026-05-09T00:00:00Z
+# operator_name_en=Example Studio Inc.
+pool_id,banner_id,banner_name_en,banner_name_ja,banner_start,banner_end,pity_threshold,pity_type,item_id,item_rarity,probability,name_en,name_ja
+servant_summon,fgo_v1,Featured Servant Summon,ピックアップ召喚,2026-05-01,2026-05-15,330,hard,featured_ssr,SSR,0.0080,Featured Servant,ピックアップサーヴァント
+servant_summon,fgo_v1,Featured Servant Summon,ピックアップ召喚,2026-05-01,2026-05-15,330,hard,std_ssr_a,SSR,0.0050,Standard Servant A,通常サーヴァントA
+servant_summon,fgo_v1,Featured Servant Summon,ピックアップ召喚,2026-05-01,2026-05-15,330,hard,std_ssr_b,SSR,0.0050,Standard Servant B,通常サーヴァントB
+servant_summon,fgo_v1,Featured Servant Summon,ピックアップ召喚,2026-05-01,2026-05-15,330,hard,sr_a,SR,0.0700,SR Servant A,SRサーヴァントA
+servant_summon,fgo_v1,Featured Servant Summon,ピックアップ召喚,2026-05-01,2026-05-15,330,hard,sr_b,SR,0.0700,SR Servant B,SRサーヴァントB
+servant_summon,fgo_v1,Featured Servant Summon,ピックアップ召喚,2026-05-01,2026-05-15,330,hard,r_a,R,0.4210,R Servant A,Rサーヴァント A
+servant_summon,fgo_v1,Featured Servant Summon,ピックアップ召喚,2026-05-01,2026-05-15,330,hard,r_b,R,0.4210,R Servant B,Rサーヴァント B

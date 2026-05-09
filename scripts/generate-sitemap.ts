@@ -16,13 +16,20 @@ const staticPaths = [
   { path: '/terms', priority: '0.3', changefreq: 'monthly' },
 ]
 
+// Built tools: detail pages only. /run pages are noindex by design (the in-app
+// workflow page should not be a discovery surface).
 const builtToolPaths = tools
   .filter((t) => t.kind === 'built')
-  .map((t) => ({
-    path: `/tools/${t.slug}`,
-    priority: '0.8',
-    changefreq: 'weekly',
-  }))
+  .flatMap((t) => {
+    if (t.url.startsWith('/')) {
+      return [
+        { path: t.url, priority: '0.8', changefreq: 'weekly' },
+        { path: `/tr${t.url}`, priority: '0.7', changefreq: 'weekly' },
+        { path: `/cn${t.url}`, priority: '0.7', changefreq: 'weekly' },
+      ]
+    }
+    return [{ path: `/tools/${t.slug}`, priority: '0.8', changefreq: 'weekly' }]
+  })
 
 const allPaths = [...staticPaths, ...builtToolPaths]
 

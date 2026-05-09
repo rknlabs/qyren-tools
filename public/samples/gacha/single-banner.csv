@@ -1,0 +1,23 @@
+# studio_name=Example Studio
+# game_id=example_game
+# game_name_en=Example Game
+# game_name_ko=예시 게임
+# game_name_ja=サンプルゲーム
+# game_name_zh_hans=示例游戏
+# game_name_tr=Örnek Oyun
+# rate_sheet_version=1.0.0
+# generated_at=2026-05-09T00:00:00Z
+# operator_name_en=Example Studio Inc.
+# operator_name_ko=예시 스튜디오 주식회사
+# operator_name_ja=Example Studio株式会社
+# operator_name_zh_hans=示例工作室有限公司
+# operator_name_tr=Örnek Stüdyo A.Ş.
+# domestic_agent_name_ko=한국 대리인 (예시)
+# outcome_history_url=https://example.com/games/example_game/history
+pool_id,banner_id,banner_name_en,banner_name_ko,banner_name_ja,banner_name_zh_hans,banner_name_tr,banner_start,banner_end,item_id,item_rarity,probability,name_en,name_ko,name_ja,name_zh_hans,name_tr,alternative_acquisition
+standard,standard_v1,Standard Pool,기본 풀,スタンダードプール,标准卡池,Standart Havuz,2026-05-01,2026-12-31,hero_a,5★,0.006,Featured Hero A,주역 영웅 A,主役英雄A,主角英雄A,Öne Çıkan Kahraman A,event
+standard,standard_v1,Standard Pool,기본 풀,スタンダードプール,标准卡池,Standart Havuz,2026-05-01,2026-12-31,hero_b,5★,0.006,Featured Hero B,주역 영웅 B,主役英雄B,主角英雄B,Öne Çıkan Kahraman B,shop
+standard,standard_v1,Standard Pool,기본 풀,スタンダードプール,标准卡池,Standart Havuz,2026-05-01,2026-12-31,weapon_a,4★,0.051,Power Weapon A,파워 무기 A,パワーウェポンA,力量武器A,Güçlü Silah A,
+standard,standard_v1,Standard Pool,기본 풀,スタンダードプール,标准卡池,Standart Havuz,2026-05-01,2026-12-31,weapon_b,4★,0.051,Power Weapon B,파워 무기 B,パワーウェポンB,力量武器B,Güçlü Silah B,
+standard,standard_v1,Standard Pool,기본 풀,スタンダードプール,标准卡池,Standart Havuz,2026-05-01,2026-12-31,potion_a,3★,0.443,Common Potion A,일반 물약 A,通常ポーションA,普通药水A,Sıradan İksir A,
+standard,standard_v1,Standard Pool,기본 풀,スタンダードプール,标准卡池,Standart Havuz,2026-05-01,2026-12-31,potion_b,3★,0.443,Common Potion B,일반 물약 B,通常ポーションB,普通药水B,Sıradan İksir B,

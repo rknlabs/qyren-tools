@@ -8,12 +8,17 @@
     "build:sitemap": "tsx scripts/generate-sitemap.ts",
     "build": "npm run build:sitemap && tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:smoke": "tsx scripts/smoke-test-gacha.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.0",
     "@tailwindcss/vite": "^4.2.4",
+    "html-to-image": "^1.11.13",
+    "jszip": "^3.10.1",
     "lucide-react": "^1.11.0",
+    "papaparse": "^5.5.3",
+    "posthog-js": "^1.372.10",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-helmet-async": "^3.0.0",
@@ -23,6 +28,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.12.2",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vercel/node": "^5.7.13",

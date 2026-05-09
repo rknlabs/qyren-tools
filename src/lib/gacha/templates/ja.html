@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>{{game_name}} — ガチャ提供割合</title>
+<style>
+body{font-family:-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;color:#0B1225;background:#fff;max-width:720px;margin:0 auto;padding:32px;line-height:1.55}
+h1{font-size:22px;margin:0 0 8px;color:#0B1225}
+h2{font-size:15px;margin:24px 0 8px;color:#0B1225;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.meta{color:rgba(11,18,37,.65);font-size:13px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+th,td{padding:8px 10px;border-bottom:1px solid #E5E3DA;text-align:left}
+th{background:#F7F6F1;font-weight:600;color:#0B1225}
+td.right{text-align:right;font-variant-numeric:tabular-nums}
+.aggregate{font-size:14px;line-height:1.7}
+.aggregate li{margin:0}
+ul{padding-left:18px;margin:6px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #E5E3DA;color:rgba(11,18,37,.65);font-size:12px}
+.disclaimer{margin-top:12px;color:rgba(11,18,37,.65);font-size:11px;line-height:1.5}
+.hash{font-family:"JetBrains Mono",monospace;font-size:10px;word-break:break-all;color:rgba(11,18,37,.5)}
+</style>
+</head>
+<body>
+<h1>ガチャ提供割合</h1>
+<div class="meta">
+ゲーム: {{game_name}}<br />
+バナー: {{banner_name}}<br />
+開催期間: {{banner_period}}<br />
+公開日: {{generated_at}}
+</div>
+
+<h2>レアリティ別 提供割合</h2>
+<ul class="aggregate">{{rarity_aggregates}}</ul>
+
+<h2>アイテム別 提供割合</h2>
+<table>
+<thead><tr><th>レアリティ</th><th>アイテム</th><th class="right">確率</th></tr></thead>
+<tbody>{{item_rows}}</tbody>
+</table>
+
+{{pity_section}}
+{{guarantee_section}}
+
+<div class="footer">
+運営: {{operator_name}}<br />
+ツールバージョン: Qyren Gacha Disclosure Pack v{{tool_version}}<br />
+公示ハッシュ: <span class="hash">{{block_hash}}</span>
+</div>
+
+<div class="disclaimer">
+本表示はJOGAおよびCESAの自主規制ガイドラインに基づく確率情報の開示です。
+運営は表示された確率と実際の確率の一致を保証します。
+法的助言ではなく、公開前に運営者による自主審査を要します。
+</div>
+</body>
+</html>

@@ -1,0 +1,388 @@
+import { useEffect, useReducer, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowLeft, RefreshCw } from 'lucide-react'
+import { Layout } from '../../components/Layout'
+import { SEO } from '../../components/SEO'
+import { getGachaStrings, type GachaLocale } from '../../i18n/gacha'
+import { RateSheetUpload } from '../../components/gacha/RateSheetUpload'
+import { RegionSelector } from '../../components/gacha/RegionSelector'
+import {
+  OutputConfig,
+  type OutputConfigState,
+} from '../../components/gacha/OutputConfig'
+import { ValidationReport } from '../../components/gacha/ValidationReport'
+import { DisclosurePreview } from '../../components/gacha/DisclosurePreview'
+import { ExportButtons, type ExportKind } from '../../components/gacha/ExportButtons'
+import {
+  GachaCaptureForm,
+  type UsageSummary,
+} from '../../components/gacha/GachaCaptureForm'
+import { InlineNotice } from '../../components/gacha/ErrorStates'
+import type { Region, RateSheet } from '../../types/gacha/rateSheet'
+import type { ValidationResult } from '../../types/gacha/validation'
+import { validate, summarizeResults } from '../../lib/gacha/validate'
+import {
+  applyHashes,
+  renderAllBlocks,
+  type RenderedBlock,
+} from '../../lib/gacha/renderTemplate'
+import { sha256 } from '../../lib/gacha/hash'
+import { generateAuditTrail } from '../../lib/gacha/generateAuditJson'
+import { downloadBlob, exportZip } from '../../lib/gacha/exportZip'
+import {
+  initPostHog,
+  trackCaptureSubmitted,
+  trackDisclosureExported,
+  trackExportAttempted,
+  trackRateSheetUploaded,
+  trackToolLoaded,
+  trackValidationCompleted,
+  trackValidationFailed,
+} from '../../lib/gacha/analytics'
+
+const TOOL_VERSION = '0.1.0'
+
+const PATH_BY_LOCALE: Record<GachaLocale, string> = {
+  en: '/gacha-disclosure-pack',
+  tr: '/tr/gacha-disclosure-pack',
+  cn: '/cn/gacha-disclosure-pack',
+}
+
+type Phase = 'input' | 'validating' | 'results' | 'capturing' | 'exporting' | 'complete'
+
+interface State {
+  phase: Phase
+  rateSheet?: RateSheet
+  regions: Region[]
+  output: OutputConfigState
+  validationResults: ValidationResult[]
+  blocks: RenderedBlock[]
+  blockHashByKey: Map<string, string>
+  pendingExport?: ExportKind
+  capturedEmail?: string
+  exportFormats: string[]
+}
+
+type Action =
+  | { type: 'RATE_SHEET_PARSED'; rateSheet: RateSheet }
+  | { type: 'RATE_SHEET_CLEARED' }
+  | { type: 'REGIONS_CHANGED'; regions: Region[] }
+  | { type: 'OUTPUT_CHANGED'; output: OutputConfigState }
+  | { type: 'START_VALIDATION' }
+  | {
+      type: 'VALIDATION_DONE'
+      results: ValidationResult[]
+      blocks: RenderedBlock[]
+      blockHashByKey: Map<string, string>
+    }
+  | { type: 'EXPORT_REQUESTED'; kind: ExportKind }
+  | { type: 'CAPTURE_DONE'; email: string }
+  | { type: 'CAPTURE_CANCELLED' }
+  | { type: 'EXPORT_DONE'; formats: string[] }
+  | { type: 'RESET' }
+
+const INITIAL: State = {
+  phase: 'input',
+  regions: ['KR', 'JP', 'CN', 'EN'],
+  output: {
+    formatHtml: true,
+    formatPng: true,
+    formatJson: true,
+    bannerLevel: true,
+    pityDisclosure: true,
+  },
+  validationResults: [],
+  blocks: [],
+  blockHashByKey: new Map(),
+  exportFormats: [],
+}
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'RATE_SHEET_PARSED':
+      return { ...state, rateSheet: action.rateSheet, phase: 'input' }
+    case 'RATE_SHEET_CLEARED':
+      return { ...state, rateSheet: undefined }
+    case 'REGIONS_CHANGED':
+      return { ...state, regions: action.regions }
+    case 'OUTPUT_CHANGED':
+      return { ...state, output: action.output }
+    case 'START_VALIDATION':
+      return { ...state, phase: 'validating' }
+    case 'VALIDATION_DONE':
+      return {
+        ...state,
+        phase: 'results',
+        validationResults: action.results,
+        blocks: action.blocks,
+        blockHashByKey: action.blockHashByKey,
+      }
+    case 'EXPORT_REQUESTED':
+      return { ...state, phase: 'capturing', pendingExport: action.kind }
+    case 'CAPTURE_DONE':
+      return { ...state, phase: 'exporting', capturedEmail: action.email }
+    case 'CAPTURE_CANCELLED':
+      return { ...state, phase: 'results', pendingExport: undefined }
+    case 'EXPORT_DONE':
+      return { ...state, phase: 'complete', exportFormats: action.formats }
+    case 'RESET':
+      return { ...INITIAL }
+    default:
+      return state
+  }
+}
+
+interface ToolPageProps {
+  locale: GachaLocale
+}
+
+export function ToolPage({ locale }: ToolPageProps) {
+  const strings = getGachaStrings(locale)
+  const t = strings.tool
+  const [state, dispatch] = useReducer(reducer, INITIAL)
+  const [parseFlash, setParseFlash] = useState<string | null>(null)
+
+  useEffect(() => {
+    initPostHog()
+    trackToolLoaded()
+  }, [])
+
+  async function runValidation() {
+    if (!state.rateSheet || state.regions.length === 0) return
+    dispatch({ type: 'START_VALIDATION' })
+
+    const results = validate(state.rateSheet, state.regions)
+    const summary = summarizeResults(results)
+    trackValidationCompleted(
+      summary.regionsPassing,
+      summary.regionsFailing,
+      summary.topFailedValidator,
+    )
+    for (const r of results.filter((r) => r.status === 'fail')) {
+      trackValidationFailed(r.region, r.validator_id)
+    }
+
+    const renderedRaw = renderAllBlocks(state.rateSheet, state.regions, {
+      toolVersion: TOOL_VERSION,
+    })
+    const hashByKey = new Map<string, string>()
+    for (const block of renderedRaw) {
+      const hash = await sha256(block.htmlForHash)
+      hashByKey.set(`${block.region}:${block.pool_id}`, hash)
+    }
+    const finalBlocks = applyHashes(renderedRaw, hashByKey)
+
+    dispatch({
+      type: 'VALIDATION_DONE',
+      results,
+      blocks: finalBlocks,
+      blockHashByKey: hashByKey,
+    })
+  }
+
+  function handleParsed(rateSheet: RateSheet) {
+    setParseFlash(null)
+    const itemTotal = rateSheet.pools.reduce((acc, p) => acc + p.items.length, 0)
+    trackRateSheetUploaded(rateSheet.pools.length, itemTotal, state.regions)
+    dispatch({ type: 'RATE_SHEET_PARSED', rateSheet })
+  }
+
+  function buildUsageSummary(): UsageSummary {
+    const failedFloors = state.validationResults.filter((r) => r.status === 'fail').length
+    const itemTotal =
+      state.rateSheet?.pools.reduce((acc, p) => acc + p.items.length, 0) ?? 0
+    const formats: string[] = []
+    if (state.output.formatHtml) formats.push('html')
+    if (state.output.formatPng) formats.push('png')
+    if (state.output.formatJson) formats.push('json')
+    return {
+      regions_covered: state.regions,
+      rate_sheet_size: itemTotal,
+      disclosure_floors_failed: failedFloors,
+      export_formats:
+        state.pendingExport === 'html'
+          ? ['html']
+          : state.pendingExport === 'json'
+            ? ['json']
+            : formats,
+    }
+  }
+
+  async function performExport() {
+    if (!state.rateSheet || !state.pendingExport) return
+    const kind = state.pendingExport
+    const include = {
+      includeHtml: kind === 'html' || (kind === 'all' && state.output.formatHtml),
+      includePng: kind === 'all' && state.output.formatPng,
+      includeJson: kind === 'json' || (kind === 'all' && state.output.formatJson),
+    }
+    const audit = await generateAuditTrail({
+      rateSheet: state.rateSheet,
+      regions: state.regions,
+      validationResults: state.validationResults,
+      blocks: state.blocks,
+      blockHashByKey: state.blockHashByKey,
+      toolVersion: TOOL_VERSION,
+      ...include,
+    })
+
+    if (kind === 'json') {
+      const blob = new Blob([JSON.stringify(audit, null, 2)], { type: 'application/json' })
+      const dateStamp = new Date().toISOString().split('T')[0]
+      const safe = state.rateSheet.metadata.game_id.replace(/[^a-zA-Z0-9_-]+/g, '-') || 'game'
+      downloadBlob(blob, `gacha-audit-${safe}-${dateStamp}.json`)
+      trackDisclosureExported(state.regions, ['json'])
+      dispatch({ type: 'EXPORT_DONE', formats: ['json'] })
+      return
+    }
+
+    const result = await exportZip(state.rateSheet, state.regions, state.blocks, audit, include)
+    downloadBlob(result.blob, result.filename)
+    trackDisclosureExported(state.regions, result.formats)
+    dispatch({ type: 'EXPORT_DONE', formats: result.formats })
+  }
+
+  function handleExport(kind: ExportKind) {
+    trackExportAttempted()
+    dispatch({ type: 'EXPORT_REQUESTED', kind })
+  }
+
+  async function handleCaptureSuccess(payload: { email: string }) {
+    const summary = buildUsageSummary()
+    trackCaptureSubmitted({ ...summary, email_domain: payload.email.split('@')[1] })
+    dispatch({ type: 'CAPTURE_DONE', email: payload.email })
+    // Run export after a brief delay so the success state is visible.
+    setTimeout(() => {
+      void performExport()
+    }, 600)
+  }
+
+  const path = `${PATH_BY_LOCALE[locale]}/run`
+  const detailPath = PATH_BY_LOCALE[locale]
+  const canValidate =
+    state.rateSheet !== undefined && state.regions.length > 0 && state.phase === 'input'
+
+  const failedCount = state.validationResults.filter((r) => r.status === 'fail').length
+
+  return (
+    <Layout>
+      <SEO
+        title={`${strings.detail.title} — Run`}
+        description={strings.detail.tagline}
+        path={path}
+        locale={locale}
+        noindex
+      />
+      <div className="px-6 py-10 max-w-4xl mx-auto">
+        <Link
+          to={detailPath}
+          className="inline-flex items-center gap-1 text-sm text-fg-muted hover:text-cyan transition mb-6"
+        >
+          <ArrowLeft size={14} />
+          {strings.detail.title}
+        </Link>
+
+        {parseFlash && (
+          <div className="mb-4">
+            <InlineNotice tone="error" title={parseFlash} />
+          </div>
+        )}
+
+        {state.phase === 'input' || state.phase === 'validating' ? (
+          <div className="space-y-5">
+            <RateSheetUpload
+              strings={strings}
+              onParsed={(rs) => handleParsed(rs)}
+              onError={(errors) => setParseFlash(errors[0]?.message ?? t.errors.malformed)}
+            />
+            <RegionSelector
+              strings={strings}
+              selected={state.regions}
+              onChange={(regions) => dispatch({ type: 'REGIONS_CHANGED', regions })}
+            />
+            <OutputConfig
+              strings={strings}
+              value={state.output}
+              onChange={(output) => dispatch({ type: 'OUTPUT_CHANGED', output })}
+            />
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => void runValidation()}
+                disabled={!canValidate || state.phase === 'validating'}
+                className="inline-flex items-center gap-2 text-sm px-5 py-2.5 rounded-md bg-fg text-bg hover:bg-cyan font-medium transition disabled:opacity-40"
+              >
+                {state.phase === 'validating' ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" /> {t.validateBtn}
+                  </>
+                ) : (
+                  t.validateBtn
+                )}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => dispatch({ type: 'RESET' })}
+                className="text-xs text-fg-muted hover:text-cyan transition"
+              >
+                {t.startOver}
+              </button>
+              <button
+                type="button"
+                onClick={() => void runValidation()}
+                className="inline-flex items-center gap-1.5 text-xs text-fg-muted hover:text-cyan transition"
+              >
+                <RefreshCw size={12} />
+                {t.revalidateBtn}
+              </button>
+            </div>
+
+            <ValidationReport strings={strings} results={state.validationResults} />
+            <DisclosurePreview
+              strings={strings}
+              blocks={state.blocks}
+              blockHashByKey={state.blockHashByKey}
+            />
+            <ExportButtons
+              strings={strings}
+              onExport={handleExport}
+              disabled={state.phase === 'exporting' || state.phase === 'capturing'}
+              pending={state.phase === 'exporting'}
+            />
+
+            {failedCount > 0 && (
+              <InlineNotice
+                tone="warn"
+                title={`${failedCount} validator(s) failed.`}
+                body="You can still export, but the studio is responsible for resolving these before publishing."
+              />
+            )}
+
+            {state.phase === 'complete' && state.capturedEmail && (
+              <InlineNotice
+                tone="warn"
+                title={`Pack downloaded for ${state.capturedEmail}.`}
+                body={`Formats: ${state.exportFormats.join(', ')}.`}
+              />
+            )}
+          </div>
+        )}
+      </div>
+
+      {state.phase === 'capturing' && (
+        <GachaCaptureForm
+          strings={strings}
+          locale={locale}
+          usageSummary={buildUsageSummary()}
+          onSuccess={handleCaptureSuccess}
+          onCancel={() => dispatch({ type: 'CAPTURE_CANCELLED' })}
+        />
+      )}
+    </Layout>
+  )
+}

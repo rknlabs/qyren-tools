@@ -77,7 +77,7 @@ export const WORKFLOW_LABELS: Record<WorkflowTag, string> = {
   'ab-testing': 'A/B Testing',
   liveops: 'LiveOps',
   'economy-cohort': 'Economy & Cohort',
-  compliance: 'Compliance',
+  compliance: 'Compliance & Disclosure',
 }
 
 export const REGION_LABELS: Record<RegionTag, string> = {
@@ -116,18 +116,18 @@ export const LICENSE_LABELS: Record<LicenseTag, string> = {
 // URLs and licenses to verify before publishing. Flagged in commit message.
 export const tools: Tool[] = [
   {
-    slug: 'ppp-fx-localizer',
+    slug: 'gacha-disclosure-pack',
     kind: 'built',
-    name: 'PPP + FX-Drift Price Localizer',
+    name: 'Gacha Disclosure Pack',
     description:
-      'Reprice your IAP catalog by purchasing-power parity. FX-drift alerts on volatile currencies.',
-    url: '/tools/ppp-fx-localizer',
-    status: 'coming-soon',
+      'One rate sheet in, region-specific disclosure blocks out: Korea, Japan, China, plus the Apple/Google floor.',
+    url: '/gacha-disclosure-pack',
+    status: 'live',
     license: 'mit',
-    workflows: ['pricing-localization'],
-    regions: ['global', 'turkey'],
+    workflows: ['compliance', 'pricing-localization'],
+    regions: ['korea', 'japan', 'china', 'global', 'turkey'],
     qyrenTake:
-      'Built with Turkish studios in mind. Lira-proof your ladder, then lock the rest of your global price ladder against PPP drift.',
+      "Korea now sues studios who publish wrong gacha rates. China requires per-banner disclosure plus daily caps. Japan polices per-item rates. Drop your rate sheet, the Pack hands you the four blocks you have to ship and a JSON audit trail you can keep on file.",
     sortPriority: 0,
   },
   {

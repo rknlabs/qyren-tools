@@ -11,13 +11,25 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
   auth: { persistSession: false },
 })
 
+interface UsageSummary {
+  regions_covered?: string[]
+  rate_sheet_size?: number
+  disclosure_floors_failed?: number
+  export_formats?: string[]
+}
+
 interface CaptureBody {
   email?: string
   captured_from_tool?: string
   source_locale?: 'en' | 'tr' | 'cn'
+  studio_name?: string
+  next_tool_idea?: string
+  usage_summary?: UsageSummary
 }
 
 const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
+const STUDIO_MAX = 200
+const NEXT_TOOL_MAX = 1000
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS: allow our own origin in production, localhost in dev, vercel preview deploys.
@@ -45,6 +57,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const email = (body.email || '').trim().toLowerCase()
   const captured_from_tool = body.captured_from_tool || 'directory'
   const source_locale = body.source_locale || 'en'
+  const studio_name = body.studio_name?.trim().slice(0, STUDIO_MAX) || null
+  const next_tool_idea = body.next_tool_idea?.trim().slice(0, NEXT_TOOL_MAX) || null
+  const usage_summary = body.usage_summary ?? null
 
   if (!EMAIL_RE.test(email)) {
     return res.status(400).json({ error: 'invalid email' })
@@ -54,6 +69,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     email,
     captured_from_tool,
     source_locale,
+    studio_name,
+    next_tool_idea,
+    usage_summary,
     referrer: req.headers.referer || null,
     user_agent: req.headers['user-agent'] || null,
   })

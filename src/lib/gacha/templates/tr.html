@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<title>{{game_name}} — Çekiliş Olasılık Bildirimi</title>
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,"Inter",sans-serif;color:#0B1225;background:#fff;max-width:720px;margin:0 auto;padding:32px;line-height:1.55}
+h1{font-size:22px;margin:0 0 8px;color:#0B1225}
+h2{font-size:15px;margin:24px 0 8px;color:#0B1225;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.meta{color:rgba(11,18,37,.65);font-size:13px;margin-bottom:16px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+th,td{padding:8px 10px;border-bottom:1px solid #E5E3DA;text-align:left}
+th{background:#F7F6F1;font-weight:600;color:#0B1225}
+td.right{text-align:right;font-variant-numeric:tabular-nums}
+.aggregate{font-size:14px;line-height:1.7}
+.aggregate li{margin:0}
+ul{padding-left:18px;margin:6px 0}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #E5E3DA;color:rgba(11,18,37,.65);font-size:12px}
+.disclaimer{margin-top:12px;color:rgba(11,18,37,.65);font-size:11px;line-height:1.5}
+.hash{font-family:"JetBrains Mono",monospace;font-size:10px;word-break:break-all;color:rgba(11,18,37,.5)}
+</style>
+</head>
+<body>
+<h1>Çekiliş Olasılık Bildirimi</h1>
+<div class="meta">
+Oyun: {{game_name}}<br />
+Banner: {{banner_name}}<br />
+Aktif dönem: {{banner_period}}<br />
+Yayın tarihi: {{generated_at}}
+</div>
+
+<h2>Nadirlik bazlı oranlar</h2>
+<ul class="aggregate">{{rarity_aggregates}}</ul>
+
+<h2>Öge bazlı olasılıklar</h2>
+<table>
+<thead><tr><th>Nadirlik</th><th>Öge</th><th class="right">Olasılık</th></tr></thead>
+<tbody>{{item_rows}}</tbody>
+</table>
+
+{{pity_section}}
+{{guarantee_section}}
+
+<div class="footer">
+Operatör: {{operator_name}}<br />
+Araç versiyonu: Qyren Gacha Disclosure Pack v{{tool_version}}<br />
+Bildirim hash: <span class="hash">{{block_hash}}</span>
+</div>
+
+<div class="disclaimer">
+Bu bildirim Apple App Store ve Google Play politikalarına uygundur.
+Operatör, açıklanan olasılıkların oyun içi sonuçlarla eşleştiğini onaylar.
+Hukuki tavsiye değildir; operatör yayın öncesi uyumluluk incelemesinden sorumludur.
+</div>
+</body>
+</html>
