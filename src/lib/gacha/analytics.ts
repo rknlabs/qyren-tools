@@ -12,6 +12,9 @@ let initialized = false
 
 export function initPostHog() {
   if (initialized) return
+  // Skip init in iframes. The disclosure preview iframe is sandboxed without
+  // allow-same-origin, so PostHog's cookie + cssRules access throws SecurityError.
+  if (typeof window === 'undefined' || window !== window.top) return
   const key = import.meta.env.VITE_POSTHOG_KEY as string | undefined
   if (!key) return
   const apiHost = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? DEFAULT_API_HOST
