@@ -193,7 +193,7 @@ function reducer(state: State, action: Action): State {
     case 'EXPORT_DONE':
       return { ...state, phase: 'complete', exportFormats: action.formats }
     case 'RESET':
-      return { ...INITIAL, fieldSources: {} }
+      return { ...INITIAL, fieldSources: {}, blockHashByKey: new Map() }
     default:
       return state
   }
@@ -265,6 +265,11 @@ export function ToolPage({ locale }: ToolPageProps) {
   const [parseFlash, setParseFlash] = useState<string | null>(null)
   const [translatingRegion, setTranslatingRegion] = useState<Language | null>(null)
   const [translationError, setTranslationError] = useState<string | null>(null)
+  // Set when the user clicks through the pre-export warning modal (wired in
+  // commit 7). Until then it stays null and the audit reports the safe
+  // "user did not attest" default.
+  const [attestedAt, setAttestedAt] = useState<string | null>(null)
+  void setAttestedAt // commit 7 wires the setter via the modal
 
   useEffect(() => {
     initPostHog()
@@ -431,6 +436,11 @@ export function ToolPage({ locale }: ToolPageProps) {
       blocks: state.blocks,
       htmlHashByKey: state.blockHashByKey,
       pngHashByKey,
+      fieldSources: state.fieldSources,
+      attestation: {
+        user_attested_at_export: attestedAt !== null,
+        attested_at: attestedAt ?? undefined,
+      },
       toolVersion: TOOL_VERSION,
       ...include,
     })

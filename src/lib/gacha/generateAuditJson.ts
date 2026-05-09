@@ -1,6 +1,11 @@
 import type { RateSheet, Region } from '../../types/gacha/rateSheet'
 import type { ValidationResult } from '../../types/gacha/validation'
-import type { AuditTrail, GeneratedBlock } from '../../types/gacha/audit'
+import type {
+  AuditTrail,
+  AutoTranslationAttestation,
+  GeneratedBlock,
+} from '../../types/gacha/audit'
+import type { FieldSource, FieldSources } from '../../types/gacha/fieldSource'
 import { canonicalizeJson, sha256 } from './hash'
 import type { RenderedBlock } from './renderTemplate'
 
@@ -17,6 +22,11 @@ export interface AuditInputs {
   // sha256sum on the file gets the same value as the audit reports.
   htmlHashByKey: Map<string, string>
   pngHashByKey?: Map<string, string>
+  // Game Details field provenance. For each user-filled field, the source
+  // tracks whether the value is user-typed, AI-translated and unreviewed,
+  // or AI-translated and then edited.
+  fieldSources: FieldSources
+  attestation: AutoTranslationAttestation
   toolVersion: string
   includeHtml: boolean
   includePng: boolean
@@ -47,8 +57,13 @@ export async function generateAuditTrail(inputs: AuditInputs): Promise<AuditTrai
     }
   }
 
+  const fieldSourcesOut: Record<string, FieldSource> = {}
+  for (const [k, entry] of Object.entries(inputs.fieldSources)) {
+    fieldSourcesOut[k] = entry.source
+  }
+
   return {
-    schema_version: '1.0',
+    schema_version: '1.1',
     generated_at: new Date().toISOString(),
     tool_version: inputs.toolVersion,
     rate_sheet_hash: rateSheetHash,
@@ -56,6 +71,8 @@ export async function generateAuditTrail(inputs: AuditInputs): Promise<AuditTrai
     regions_targeted: inputs.regions,
     validation_results: inputs.validationResults,
     generated_blocks: generated,
+    field_sources: fieldSourcesOut,
+    auto_translation_attestation: inputs.attestation,
     disclaimer: DISCLAIMER,
   }
 }
