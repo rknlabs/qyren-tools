@@ -303,6 +303,7 @@ export function ToolPage({ locale }: ToolPageProps) {
 
     const blocks = renderAllBlocks(effSheet, state.regions, {
       toolVersion: TOOL_VERSION,
+      fieldSources: state.fieldSources,
     })
     // HTML hash is sha256 of the exact HTML string the ZIP will contain.
     // PNG hash is computed at export time from the rendered blob bytes.

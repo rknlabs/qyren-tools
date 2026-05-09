@@ -1,9 +1,11 @@
 import type { Pool, RateSheet, Region } from '../../types/gacha/rateSheet'
+import type { FieldSources } from '../../types/gacha/fieldSource'
 import koTemplate from './templates/ko.html?raw'
 import jaTemplate from './templates/ja.html?raw'
 import zhTemplate from './templates/zh-Hans.html?raw'
 import enTemplate from './templates/en.html?raw'
 import trTemplate from './templates/tr.html?raw'
+import { suffixForRegion, TRANSLATABLE_FIELD_PREFIXES } from './fieldSources'
 
 const TEMPLATES: Record<Region, string> = {
   KR: koTemplate,
@@ -13,8 +15,20 @@ const TEMPLATES: Record<Region, string> = {
   TR: trTemplate,
 }
 
+// Per-region footnote rendered when at least one Game Details field used by
+// this disclosure block is still source = auto_translated_unreviewed at
+// export time. Wrapped in escapeHtml-safe static text; no untrusted input.
+const TRANSLATION_FOOTNOTE: Record<Region, string> = {
+  KR: '<div class="translation-footnote">참고: 본 공시의 일부는 기계 번역으로 생성되었습니다. 운영자는 모든 값이 해당 게임의 게시된 스토어 등재 정보와 일치함을 확인합니다.</div>',
+  JP: '<div class="translation-footnote">注：本表示の一部は機械翻訳によって生成されました。運営者は、すべての値が該当するゲームの公開ストア情報と一致することを確認しています。</div>',
+  CN: '<div class="translation-footnote">注：本公示部分内容由机器翻译生成。运营方确认所有数值与对应游戏在应用商店发布的信息一致。</div>',
+  EN: '<div class="translation-footnote">Note: Portions of this disclosure were generated using machine translation. The operator confirms that all values match the corresponding game\'s published store listings.</div>',
+  TR: '<div class="translation-footnote">Not: Bu bildirimin bir kısmı makine çevirisiyle oluşturulmuştur. Operatör, tüm değerlerin ilgili oyunun yayınlanan mağaza listesiyle eşleştiğini onaylar.</div>',
+}
+
 interface RenderOptions {
   toolVersion: string
+  fieldSources?: FieldSources
 }
 
 export interface RenderedBlock {
@@ -31,7 +45,7 @@ export function renderAllBlocks(
   const blocks: RenderedBlock[] = []
   for (const region of regions) {
     for (const pool of rateSheet.pools) {
-      const html = renderPool(rateSheet, pool, region, options.toolVersion)
+      const html = renderPool(rateSheet, pool, region, options)
       blocks.push({ region, pool_id: pool.pool_id, html })
     }
   }
@@ -42,11 +56,31 @@ function renderPool(
   rateSheet: RateSheet,
   pool: Pool,
   region: Region,
-  toolVersion: string,
+  options: RenderOptions,
 ): string {
   const template = TEMPLATES[region]
-  const fields = buildFieldMap(rateSheet, pool, region, toolVersion)
+  const fields = buildFieldMap(rateSheet, pool, region, options.toolVersion)
+  fields.translation_footnote = hasUnreviewedTranslations(region, options.fieldSources)
+    ? TRANSLATION_FOOTNOTE[region]
+    : ''
   return interpolate(template, fields)
+}
+
+// True when at least one of this region's translatable Game Details fields
+// (game_name, banner_name, operator_name) is still source =
+// auto_translated_unreviewed. The user clicked auto-translate and never
+// edited the result, so the disclosure block earns the footnote.
+function hasUnreviewedTranslations(
+  region: Region,
+  fieldSources: FieldSources | undefined,
+): boolean {
+  if (!fieldSources) return false
+  const suffix = suffixForRegion(region)
+  for (const prefix of TRANSLATABLE_FIELD_PREFIXES) {
+    const id = `${prefix}_${suffix}`
+    if (fieldSources[id]?.source === 'auto_translated_unreviewed') return true
+  }
+  return false
 }
 
 function interpolate(template: string, fields: Record<string, string>): string {
@@ -84,9 +118,13 @@ function buildFieldMap(
     pool.banner_name_zh_hans,
     pool.banner_name_tr,
   )
+  // En-dash separator between dates is acceptable typography. The fallback
+  // here only fires when banner_period is missing; the form's required-state
+  // gate prevents that on the happy path. Rendered as "(not set)" rather than
+  // a dash per brand voice ban; honest signal beats decorative dash.
   const period = pool.banner_period
     ? `${pool.banner_period.start} – ${pool.banner_period.end}`
-    : '—'
+    : '(not set)'
 
   return {
     game_name: escapeHtml(game),
