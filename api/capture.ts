@@ -132,14 +132,8 @@ function welcomeHtmlEn(): string {
   <body style="font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; color: #0B1225; max-width: 560px; margin: 0 auto; padding: 24px; line-height: 1.6;">
     <h1 style="font-size: 20px; font-weight: 600; margin: 0 0 16px; color: #0B1225;">Welcome to Qyren Tools</h1>
     <p>Thanks for joining. The directory is the first surface. The interesting part is what we are building on top of it.</p>
-    <p>Three things shipping in the next few weeks:</p>
-    <ul style="padding-left: 18px;">
-      <li><strong>PPP + FX-Drift Price Localizer</strong>. Reprice your IAP catalog by purchasing-power parity, with alerts when target currencies drift against USD. Built with Turkish studios in mind.</li>
-      <li><strong>iOS IAP Bulk Editor</strong>. The bulk uploader Apple has not built for nine years. Bring your own ASC API key. Edit in a grid. Dry-run. Commit.</li>
-      <li><strong>SKAN Conversion Schema Designer</strong>. Land before SKAN 5 GA.</li>
-    </ul>
     <p>If a specific monetization workflow is broken for you and you wish there was a tool that fixed it, hit reply. The roadmap is informed by what operators actually need, not what we guess.</p>
-    <p style="margin-top: 24px;">Ramesh<br>Qyren</p>
+    <p style="margin-top: 24px;">Ramesh<br>Founder, Qyren</p>
     <hr style="border: none; border-top: 1px solid #E5E3DA; margin: 32px 0 16px;" />
     <p style="font-size: 12px; color: rgba(11, 18, 37, 0.5);">You received this because you signed up at tools.qyren.ai. Reply with "unsubscribe" if you no longer want to hear from us.</p>
   </body>
@@ -152,16 +146,10 @@ function welcomeTextEn(): string {
     '',
     'Thanks for joining. The directory is the first surface. The interesting part is what we are building on top of it.',
     '',
-    'Three things shipping in the next few weeks:',
-    '',
-    '- PPP + FX-Drift Price Localizer. Reprice your IAP catalog by purchasing-power parity, with alerts when target currencies drift against USD. Built with Turkish studios in mind.',
-    '- iOS IAP Bulk Editor. The bulk uploader Apple has not built for nine years. Bring your own ASC API key. Edit in a grid. Dry-run. Commit.',
-    '- SKAN Conversion Schema Designer. Land before SKAN 5 GA.',
-    '',
     'If a specific monetization workflow is broken for you and you wish there was a tool that fixed it, hit reply. The roadmap is informed by what operators actually need, not what we guess.',
     '',
     'Ramesh',
-    'Qyren',
+    'Founder, Qyren',
     '',
     '---',
     'You received this because you signed up at tools.qyren.ai. Reply with "unsubscribe" if you no longer want to hear from us.',
