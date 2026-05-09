@@ -75,6 +75,12 @@ export function LanguageCard({
         )}
       </div>
 
+      {!isPrimary && onTranslate && (
+        <p className="text-[11px] text-fg-subtle leading-relaxed mb-3 -mt-2">
+          {t.privacyNotice}
+        </p>
+      )}
+
       <div className="space-y-3">
         <CardField
           fieldId={`game_name_${suffix}`}

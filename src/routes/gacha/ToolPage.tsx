@@ -7,6 +7,7 @@ import { getGachaStrings, type GachaLocale } from '../../i18n/gacha'
 import { RateSheetUpload } from '../../components/gacha/RateSheetUpload'
 import { LoadedSheetSummary } from '../../components/gacha/LoadedSheetSummary'
 import { GameDetailsForm } from '../../components/gacha/GameDetailsForm'
+import { translateText } from '../../lib/gacha/translate'
 import { RegionSelector } from '../../components/gacha/RegionSelector'
 import {
   OutputConfig,
@@ -25,7 +26,10 @@ import type { ValidationResult } from '../../types/gacha/validation'
 import type { FieldSource, FieldSources } from '../../types/gacha/fieldSource'
 import {
   buildEffectiveRateSheet,
+  fieldId as buildFieldId,
   getEffectiveFieldValue,
+  REGION_TRANSLATION_LOCALE,
+  TRANSLATABLE_FIELD_PREFIXES,
   type Language,
 } from '../../lib/gacha/fieldSources'
 import { validate, summarizeResults } from '../../lib/gacha/validate'
@@ -83,6 +87,7 @@ type Action =
   | { type: 'REGIONS_CHANGED'; regions: Region[] }
   | { type: 'OUTPUT_CHANGED'; output: OutputConfigState }
   | { type: 'FIELD_CHANGED'; fieldId: string; value: string }
+  | { type: 'AUTO_TRANSLATE_FIELD'; fieldId: string; value: string }
   | { type: 'PRIMARY_LANGUAGE_CHANGED'; language: Language }
   | { type: 'OVERSEAS_TOGGLED'; value: boolean }
   | { type: 'FORM_TOUCHED' }
@@ -152,6 +157,17 @@ function reducer(state: State, action: Action): State {
         },
       }
     }
+    case 'AUTO_TRANSLATE_FIELD':
+      return {
+        ...state,
+        fieldSources: {
+          ...state.fieldSources,
+          [action.fieldId]: {
+            value: action.value,
+            source: 'auto_translated_unreviewed',
+          },
+        },
+      }
     case 'PRIMARY_LANGUAGE_CHANGED':
       return { ...state, primaryLanguage: action.language }
     case 'OVERSEAS_TOGGLED':
@@ -247,6 +263,8 @@ export function ToolPage({ locale }: ToolPageProps) {
   const t = strings.tool
   const [state, dispatch] = useReducer(reducer, INITIAL)
   const [parseFlash, setParseFlash] = useState<string | null>(null)
+  const [translatingRegion, setTranslatingRegion] = useState<Language | null>(null)
+  const [translationError, setTranslationError] = useState<string | null>(null)
 
   useEffect(() => {
     initPostHog()
@@ -295,6 +313,59 @@ export function ToolPage({ locale }: ToolPageProps) {
       blocks,
       blockHashByKey: htmlHashByKey,
     })
+  }
+
+  async function handleTranslateSection(target: Language) {
+    if (!state.rateSheet) return
+    const primary = state.primaryLanguage
+    if (target === primary) return
+    setTranslationError(null)
+
+    // Check whether the target section already has user-controlled values
+    // that the translation would overwrite. Confirm before clobbering.
+    const targetIds = TRANSLATABLE_FIELD_PREFIXES.map((p) => buildFieldId(p, target))
+    const wouldClobber = targetIds.some((id) => {
+      const src = state.fieldSources[id]
+      return (
+        src?.source === 'user_typed' || src?.source === 'auto_translated_then_edited'
+      )
+    })
+    if (wouldClobber) {
+      const confirmed = window.confirm(
+        strings.tool.gameDetails.translationOverwriteConfirm,
+      )
+      if (!confirmed) return
+    }
+
+    setTranslatingRegion(target)
+    try {
+      const sourceLocale = REGION_TRANSLATION_LOCALE[primary]
+      const targetLocale = REGION_TRANSLATION_LOCALE[target]
+      let anyFailed = false
+      for (const prefix of TRANSLATABLE_FIELD_PREFIXES) {
+        const sourceField = buildFieldId(prefix, primary)
+        const targetField = buildFieldId(prefix, target)
+        const sourceValue = getEffectiveFieldValue(
+          sourceField,
+          state.rateSheet,
+          state.fieldSources,
+        )
+        if (!sourceValue.trim()) continue
+
+        const result = await translateText(sourceValue, sourceLocale, targetLocale)
+        if (result.ok) {
+          dispatch({ type: 'AUTO_TRANSLATE_FIELD', fieldId: targetField, value: result.text })
+        } else {
+          anyFailed = true
+          console.error(`Translation failed for ${sourceField} → ${targetField}:`, result.error)
+        }
+      }
+      if (anyFailed) {
+        setTranslationError(strings.tool.gameDetails.translationFailed)
+      }
+    } finally {
+      setTranslatingRegion(null)
+    }
   }
 
   function handleParsed(rateSheet: RateSheet) {
@@ -467,7 +538,12 @@ export function ToolPage({ locale }: ToolPageProps) {
                   dispatch({ type: 'PRIMARY_LANGUAGE_CHANGED', language })
                 }
                 onOverseasToggle={(value) => dispatch({ type: 'OVERSEAS_TOGGLED', value })}
+                onTranslateSection={handleTranslateSection}
+                translatingRegion={translatingRegion}
               />
+            )}
+            {translationError && (
+              <InlineNotice tone="error" title={translationError} />
             )}
             <OutputConfig
               strings={strings}
