@@ -22,6 +22,8 @@ export const en = {
     uploadCta: 'Choose CSV file',
     pasteJson: 'Or paste a JSON rate sheet',
     pasteJsonPlaceholder: '{ "metadata": { ... }, "pools": [ ... ] }',
+    parseJsonButton: 'Parse JSON',
+    parseStale: 'Unsaved changes. Click Parse JSON to apply.',
     sampleHeading: 'Or start from a sample:',
     sampleSingleBanner: 'Single banner',
     sampleMultiBanner: 'Multi-banner',

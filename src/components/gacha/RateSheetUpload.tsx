@@ -29,6 +29,12 @@ export function RateSheetUpload({ strings, onParsed, onError }: RateSheetUploadP
   const [showSchema, setShowSchema] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const [parseErrors, setParseErrors] = useState<ParseError[]>([])
+  // Tracks the textarea content at the moment of the last successful parse.
+  // When pasteValue diverges from this, the user has unsaved edits and the
+  // stale-state indicator surfaces next to the Parse JSON button.
+  const [lastParsedSource, setLastParsedSource] = useState<string | null>(null)
+  const isStale =
+    lastParsedSource !== null && pasteValue.trim() !== lastParsedSource.trim()
 
   function handleInput(input: string, opts?: { syncTextarea?: boolean }) {
     const result = parseRateSheet(input)
@@ -36,9 +42,11 @@ export function RateSheetUpload({ strings, onParsed, onError }: RateSheetUploadP
       setParseErrors([])
       // Show what got loaded in the textarea so the user has visible
       // feedback and an editable representation.
-      if (opts?.syncTextarea) {
-        setPasteValue(JSON.stringify(result.rateSheet, null, 2))
-      }
+      const display = opts?.syncTextarea
+        ? JSON.stringify(result.rateSheet, null, 2)
+        : input
+      if (opts?.syncTextarea) setPasteValue(display)
+      setLastParsedSource(display)
       onParsed(result.rateSheet)
     } else {
       setParseErrors(result.errors)
@@ -135,14 +143,19 @@ export function RateSheetUpload({ strings, onParsed, onError }: RateSheetUploadP
           placeholder={t.pasteJsonPlaceholder}
           className="w-full h-40 rounded-md border border-divider bg-bg p-3 text-xs font-mono text-fg placeholder:text-fg-subtle focus:outline-none focus:border-cyan/60"
         />
-        <button
-          type="button"
-          onClick={handlePasteSubmit}
-          disabled={!pasteValue.trim()}
-          className="mt-2 text-sm px-3 py-1.5 rounded-md bg-fg text-bg hover:bg-cyan transition disabled:opacity-40"
-        >
-          Parse JSON
-        </button>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={handlePasteSubmit}
+            disabled={!pasteValue.trim()}
+            className="text-sm px-3 py-1.5 rounded-md bg-fg text-bg hover:bg-cyan transition disabled:opacity-40"
+          >
+            {t.parseJsonButton}
+          </button>
+          {isStale && (
+            <span className="text-xs text-gold">{t.parseStale}</span>
+          )}
+        </div>
       </div>
 
       <div className="mt-5">

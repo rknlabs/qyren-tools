@@ -22,6 +22,8 @@ export const zhHans = {
     uploadCta: '选择 CSV 文件',
     pasteJson: '或粘贴 JSON 概率表',
     pasteJsonPlaceholder: '{ "metadata": { ... }, "pools": [ ... ] }',
+    parseJsonButton: '解析 JSON',
+    parseStale: '尚未保存更改。点击"解析 JSON"以应用。',
     sampleHeading: '或从示例开始:',
     sampleSingleBanner: '单卡池',
     sampleMultiBanner: '多卡池',

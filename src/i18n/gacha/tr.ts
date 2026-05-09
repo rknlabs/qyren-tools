@@ -24,6 +24,8 @@ export const tr = {
     uploadCta: 'CSV dosyası seç',
     pasteJson: 'Ya da JSON oran tablosu yapıştır',
     pasteJsonPlaceholder: '{ "metadata": { ... }, "pools": [ ... ] }',
+    parseJsonButton: 'JSON\'ı Çözümle',
+    parseStale: 'Kaydedilmemiş değişiklikler. Uygulamak için JSON\'ı Çözümle\'ye tıklayın.',
     sampleHeading: 'Ya da örnekten başla:',
     sampleSingleBanner: 'Tek banner',
     sampleMultiBanner: 'Çoklu banner',
