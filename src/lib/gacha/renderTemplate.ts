@@ -141,7 +141,7 @@ function buildFieldMap(
     outcome_history: escapeHtml(
       meta.outcome_history_url ?? '运营商应在游戏内或官网提供 / Operator must provide',
     ),
-    alt_acquisition_section: buildAltAcquisitionSection(pool),
+    alt_acquisition_section: buildAltAcquisitionSection(pool, region),
   }
 }
 
@@ -260,13 +260,53 @@ function buildDomesticAgentLine(agentName?: string): string {
   return `국내 대리인: ${escapeHtml(agentName)}<br />`
 }
 
-function buildAltAcquisitionSection(pool: Pool): string {
+// Canonical acquisition_method values get localized labels in the rendered
+// disclosure block. Studios using non-canonical values (custom strings) get
+// the raw value rendered as-is — same fallback shape as the per-region item
+// name fallback.
+const ACQUISITION_METHOD_LABELS: Record<string, Record<Region, string>> = {
+  event: { EN: 'Event', KR: '이벤트', JP: 'イベント', CN: '活动', TR: 'Etkinlik' },
+  shop: { EN: 'Shop', KR: '상점', JP: 'ショップ', CN: '商城', TR: 'Mağaza' },
+  gift: { EN: 'Gift', KR: '선물', JP: 'ギフト', CN: '礼物', TR: 'Hediye' },
+  daily_login: {
+    EN: 'Daily login',
+    KR: '일일 로그인',
+    JP: 'デイリーログイン',
+    CN: '每日登录',
+    TR: 'Günlük Giriş',
+  },
+  purchase: {
+    EN: 'Purchase',
+    KR: '구매',
+    JP: '購入',
+    CN: '购买',
+    TR: 'Satın Alma',
+  },
+  achievement: {
+    EN: 'Achievement',
+    KR: '업적',
+    JP: '実績',
+    CN: '成就',
+    TR: 'Başarı',
+  },
+  none: { EN: 'None', KR: '없음', JP: 'なし', CN: '无', TR: 'Yok' },
+}
+
+function localizeAcquisitionMethod(value: string | undefined, region: Region): string {
+  if (!value) return ''
+  const key = value.trim().toLowerCase()
+  const entry = ACQUISITION_METHOD_LABELS[key]
+  if (entry) return entry[region]
+  return value
+}
+
+function buildAltAcquisitionSection(pool: Pool, region: Region): string {
   const withAlt = pool.items.filter((i) => i.alternative_acquisition)
   if (withAlt.length === 0) return ''
   const rows = withAlt
     .map(
       (i) =>
-        `<tr><td>${escapeHtml(i.name_zh_hans ?? i.name_en)}</td><td>${escapeHtml(i.alternative_acquisition ?? '')}</td></tr>`,
+        `<tr><td>${escapeHtml(pickItemName(i, region))}</td><td>${escapeHtml(localizeAcquisitionMethod(i.alternative_acquisition, region))}</td></tr>`,
     )
     .join('')
   return `<h2>卡池外获取途径</h2><table><thead><tr><th>物品</th><th>获取途径</th></tr></thead><tbody>${rows}</tbody></table>`
