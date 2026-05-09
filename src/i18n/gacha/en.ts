@@ -53,7 +53,7 @@ export const en = {
       emailPlaceholder: 'you@studio.com',
       studioLabel: 'Studio (optional)',
       studioPlaceholder: 'Your studio name',
-      nextToolLabel: 'What tool would you build next?',
+      nextToolLabel: 'What tool should we build next?',
       nextToolPlaceholder: 'Optional. We read these.',
       submit: 'Get the pack',
       submitting: 'Preparing…',

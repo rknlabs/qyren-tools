@@ -53,7 +53,7 @@ export const zhHans = {
       emailPlaceholder: 'you@studio.com',
       studioLabel: '工作室（可选）',
       studioPlaceholder: '您的工作室名称',
-      nextToolLabel: '您接下来希望我们构建什么工具？',
+      nextToolLabel: '我们接下来应该构建什么工具？',
       nextToolPlaceholder: '可选。我们会阅读。',
       submit: '获取工具包',
       submitting: '处理中…',

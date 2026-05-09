@@ -55,7 +55,7 @@ export const tr = {
       emailPlaceholder: 'sen@studyo.com',
       studioLabel: 'Stüdyo (isteğe bağlı)',
       studioPlaceholder: 'Stüdyo adınız',
-      nextToolLabel: 'Sırada hangi aracı geliştirirdiniz?',
+      nextToolLabel: 'Sırada hangi aracı geliştirmeliyiz?',
       nextToolPlaceholder: 'İsteğe bağlı. Okuyoruz.',
       submit: 'Paketi al',
       submitting: 'Hazırlanıyor…',
