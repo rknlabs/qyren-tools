@@ -76,9 +76,10 @@ export function LanguageCard({
       </div>
 
       {!isPrimary && onTranslate && (
-        <p className="text-[11px] text-fg-subtle leading-relaxed mb-3 -mt-2">
-          {t.privacyNotice}
-        </p>
+        <div className="space-y-1.5 mb-3 -mt-2">
+          <p className="text-[11px] text-fg-subtle leading-relaxed">{t.privacyNotice}</p>
+          <p className="text-[11px] text-fg-subtle leading-relaxed">{t.qualityNotice}</p>
+        </div>
       )}
 
       <div className="space-y-3">

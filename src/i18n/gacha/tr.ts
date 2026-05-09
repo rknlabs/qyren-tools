@@ -110,6 +110,8 @@ export const tr = {
       aiTooltip: '{primary} dilinden otomatik çevrildi. Düzenlemek için tıklayın.',
       privacyNotice:
         'Otomatik çeviri, bu bölümdeki metni MyMemory\'nin herkese açık çeviri API\'sine gönderir. Gizli veya henüz duyurulmamış oyun başlıkları için kullanmayın.',
+      qualityNotice:
+        'Otomatik çeviriler birer başlangıç noktasıdır; özel adları veya marka adlarını tutarlı şekilde çevirmeyebilir. Dışa aktarmadan önce her alanı yayınlanmış mağaza listelerinizle karşılaştırarak gözden geçirin ve düzenleyin.',
       attestModal: {
         heading:
           'Bazı Oyun Bilgileri alanları hâlâ gözden geçirmediğiniz veya düzenlemediğiniz otomatik çevrilmiş değerleri gösteriyor:',

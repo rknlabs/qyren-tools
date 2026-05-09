@@ -44,7 +44,10 @@ export function AutoTranslationWarningModal({
           ))}
         </ul>
 
-        <p className="text-sm text-fg-muted leading-relaxed mb-4">{t.sub}</p>
+        <p className="text-sm text-fg-muted leading-relaxed mb-2">{t.sub}</p>
+        <p className="text-xs text-fg-subtle leading-relaxed mb-4">
+          {strings.tool.gameDetails.qualityNotice}
+        </p>
 
         <div className="flex flex-wrap items-center gap-2 justify-end">
           <button
