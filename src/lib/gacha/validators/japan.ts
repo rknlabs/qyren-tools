@@ -91,4 +91,39 @@ export const JP4_unfairPremiumActNote: Validator = (ctx) => {
   ]
 }
 
-export const japanValidators = [JP2_languageCoverage, JP3_kompuGachaCheck, JP4_unfairPremiumActNote]
+export const JP5_pityCompleteness: Validator = (ctx) => {
+  if (ctx.region !== 'JP') return []
+  const pool = ctx.rateSheet.pools.find((p) => p.pool_id === ctx.pool_id)
+  if (!pool) return []
+  if (!pool.pity_threshold) return []
+  if (pool.soft_pity_start && pool.soft_pity_start > 0) {
+    return [
+      {
+        pool_id: ctx.pool_id,
+        region: 'JP',
+        validator_id: 'JP5',
+        status: 'pass',
+        message: 'Pity disclosure includes both soft-pity ramp and hard-pity threshold',
+      },
+    ]
+  }
+  return [
+    {
+      pool_id: ctx.pool_id,
+      region: 'JP',
+      validator_id: 'JP5',
+      status: 'warn',
+      message:
+        'Pity threshold disclosed but soft-pity ramp is not. Japanese players are calibrated to expect both lines.',
+      suggested_fix:
+        'If your game uses Genshin-style soft pity, add soft_pity_start to your rate sheet for fuller disclosure.',
+    },
+  ]
+}
+
+export const japanValidators = [
+  JP2_languageCoverage,
+  JP3_kompuGachaCheck,
+  JP4_unfairPremiumActNote,
+  JP5_pityCompleteness,
+]

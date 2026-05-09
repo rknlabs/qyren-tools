@@ -32,6 +32,11 @@ export interface Pool {
   banner_name_tr?: string
   pity_threshold?: number
   pity_type?: PityType
+  // Pull number where the soft-pity rate ramp begins; below this threshold
+  // the listed rate applies, above it the rate increases per pull until
+  // hitting 100% at pity_threshold. Required for full disclosure of
+  // Genshin-style soft pity; Korean GRAC inspects for partial disclosure.
+  soft_pity_start?: number
   guarantee_threshold?: number
   items: Item[]
 }

@@ -111,9 +111,40 @@ export const CN5_outcomeHistoryPointer: Validator = (ctx) => {
   ]
 }
 
+export const CN6_pityCompleteness: Validator = (ctx) => {
+  if (ctx.region !== 'CN') return []
+  const pool = ctx.rateSheet.pools.find((p) => p.pool_id === ctx.pool_id)
+  if (!pool) return []
+  if (!pool.pity_threshold) return []
+  if (pool.soft_pity_start && pool.soft_pity_start > 0) {
+    return [
+      {
+        pool_id: ctx.pool_id,
+        region: 'CN',
+        validator_id: 'CN6',
+        status: 'pass',
+        message: 'Pity disclosure includes both soft-pity ramp and hard-pity threshold',
+      },
+    ]
+  }
+  return [
+    {
+      pool_id: ctx.pool_id,
+      region: 'CN',
+      validator_id: 'CN6',
+      status: 'warn',
+      message:
+        'Pity threshold disclosed but soft-pity ramp is not. Chinese players are calibrated to the standard 软保底 / 硬保底 dual disclosure.',
+      suggested_fix:
+        'If your game uses Genshin-style soft pity, add soft_pity_start to your rate sheet for fuller disclosure.',
+    },
+  ]
+}
+
 export const chinaValidators = [
   CN2_perBannerDisclosure,
   CN3_languageCoverage,
   CN4_dailyCapNotice,
   CN5_outcomeHistoryPointer,
+  CN6_pityCompleteness,
 ]

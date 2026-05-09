@@ -9,9 +9,9 @@
 # operator_name_en=Example Studio Inc.
 # domestic_agent_name_ko=한국 대리인 (예시)
 # outcome_history_url=https://example.com/games/soft-pity/history
-pool_id,banner_id,banner_name_en,banner_name_ko,banner_name_ja,banner_name_zh_hans,banner_start,banner_end,pity_threshold,pity_type,guarantee_threshold,item_id,item_rarity,probability,name_en,name_ko,name_ja,name_zh_hans
-limited_banner,limited_v1,Limited Hero Banner,한정 영웅 배너,限定キャラバナー,限定角色卡池,2026-05-01,2026-05-21,90,soft,180,featured_5,5★,0.0060,Featured Limited Hero,한정 영웅,限定キャラ,限定角色
-limited_banner,limited_v1,Limited Hero Banner,한정 영웅 배너,限定キャラバナー,限定角色卡池,2026-05-01,2026-05-21,90,soft,180,std_5_a,5★,0.0030,Standard Hero A,일반 영웅 A,通常キャラA,常驻角色A
-limited_banner,limited_v1,Limited Hero Banner,한정 영웅 배너,限定キャラバナー,限定角色卡池,2026-05-01,2026-05-21,90,soft,180,four_star_a,4★,0.0510,4-Star Hero A,4성 영웅 A,4星キャラA,四星角色A
-limited_banner,limited_v1,Limited Hero Banner,한정 영웅 배너,限定キャラバナー,限定角色卡池,2026-05-01,2026-05-21,90,soft,180,four_star_b,4★,0.0510,4-Star Hero B,4성 영웅 B,4星キャラB,四星角色B
-limited_banner,limited_v1,Limited Hero Banner,한정 영웅 배너,限定キャラバナー,限定角色卡池,2026-05-01,2026-05-21,90,soft,180,three_star_filler,3★,0.8890,3-Star Filler,3성 필러,3星フィラー,三星填充
+pool_id,banner_id,banner_name_en,banner_name_ko,banner_name_ja,banner_name_zh_hans,banner_start,banner_end,pity_threshold,pity_type,soft_pity_start,guarantee_threshold,item_id,item_rarity,probability,name_en,name_ko,name_ja,name_zh_hans
+limited_banner,limited_v1,Limited Hero Banner,한정 영웅 배너,限定キャラバナー,限定角色卡池,2026-05-01,2026-05-21,90,soft,74,180,featured_5,5★,0.0060,Featured Limited Hero,한정 영웅,限定キャラ,限定角色
+limited_banner,limited_v1,Limited Hero Banner,한정 영웅 배너,限定キャラバナー,限定角色卡池,2026-05-01,2026-05-21,90,soft,74,180,std_5_a,5★,0.0030,Standard Hero A,일반 영웅 A,通常キャラA,常驻角色A
+limited_banner,limited_v1,Limited Hero Banner,한정 영웅 배너,限定キャラバナー,限定角色卡池,2026-05-01,2026-05-21,90,soft,74,180,four_star_a,4★,0.0510,4-Star Hero A,4성 영웅 A,4星キャラA,四星角色A
+limited_banner,limited_v1,Limited Hero Banner,한정 영웅 배너,限定キャラバナー,限定角色卡池,2026-05-01,2026-05-21,90,soft,74,180,four_star_b,4★,0.0510,4-Star Hero B,4성 영웅 B,4星キャラB,四星角色B
+limited_banner,limited_v1,Limited Hero Banner,한정 영웅 배너,限定キャラバナー,限定角色卡池,2026-05-01,2026-05-21,90,soft,74,180,three_star_filler,3★,0.8890,3-Star Filler,3성 필러,3星フィラー,三星填充

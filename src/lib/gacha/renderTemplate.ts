@@ -136,7 +136,7 @@ function buildFieldMap(
     rarity_aggregates: buildRarityAggregates(pool, region),
     item_rows: buildItemRows(pool, region),
     pity_section: buildPitySection(pool, region),
-    guarantee_section: buildGuaranteeSection(pool, region),
+    guarantee_section: '',
     domestic_agent_line: buildDomesticAgentLine(meta.domestic_agent_name_ko),
     outcome_history: escapeHtml(
       meta.outcome_history_url ?? '运营商应在游戏内或官网提供 / Operator must provide',
@@ -212,47 +212,52 @@ function buildItemRows(pool: Pool, region: Region): string {
     .join('')
 }
 
+// Renders up to three conditional lines under a single heading: soft pity
+// ramp start, hard pity threshold, and guarantee mechanism. Each line gates
+// on its own pool field — Genshin-style banners get all three; FGO-style
+// hard-pity-only banners get just one. KR template formerly conflated soft
+// pity and hard pity into one mislabeled line; this split aligns with how
+// HoYoverse Korean disclosures actually render.
 function buildPitySection(pool: Pool, region: Region): string {
-  if (!pool.pity_threshold || pool.pity_threshold === 0) return ''
+  const hasSoft = (pool.soft_pity_start ?? 0) > 0
+  const hasHard = (pool.pity_threshold ?? 0) > 0
+  const hasGuarantee = (pool.guarantee_threshold ?? 0) > 0
+  if (!hasSoft && !hasHard && !hasGuarantee) return ''
+
   const heading: Record<Region, string> = {
-    KR: '천장 / 소프트 피티 정보',
+    KR: '천장 / 피티 정보',
     JP: '天井・ピティ機構',
-    CN: '保底机制',
+    CN: '天井 / 保底机制',
     EN: 'Pity and guarantees',
     TR: 'Acıma ve garanti mekanikleri',
   }
-  const lines: Record<Region, (n: number, type?: string) => string> = {
-    KR: (n, type) =>
-      `${type === 'soft' ? '소프트 피티' : type === 'hard' ? '확정' : '피티'}: ${n}회 소환 시 보장`,
-    JP: (n, type) =>
-      `${type === 'soft' ? 'ソフト天井' : type === 'hard' ? '天井' : 'ピティ'}: ${n}回で確定`,
-    CN: (n, type) =>
-      `${type === 'soft' ? '软保底' : type === 'hard' ? '硬保底' : '保底'}: 累计 ${n} 抽必出`,
-    EN: (n, type) =>
-      `${type === 'soft' ? 'Soft pity' : type === 'hard' ? 'Hard pity' : 'Pity'} at ${n} pulls`,
-    TR: (n, type) =>
-      `${type === 'soft' ? 'Yumuşak acıma' : type === 'hard' ? 'Sert acıma' : 'Acıma'} ${n} çekilişte garanti`,
+  const softLine: Record<Region, (n: number) => string> = {
+    KR: (n) => `소프트 피티: ${n}회부터 5★ 확률 증가`,
+    JP: (n) => `ソフトピティ: ${n}回目から確率上昇`,
+    CN: (n) => `软保底: 第${n}抽起概率提升`,
+    EN: (n) => `Soft pity rate ramp begins at ${n} pulls`,
+    TR: (n) => `Yumuşak acıma ${n} çekilişten itibaren oran artar`,
   }
-  return `<h2>${escapeHtml(heading[region])}</h2><ul><li>${escapeHtml(lines[region](pool.pity_threshold, pool.pity_type))}</li></ul>`
-}
-
-function buildGuaranteeSection(pool: Pool, region: Region): string {
-  if (!pool.guarantee_threshold) return ''
-  const heading: Record<Region, string> = {
-    KR: '확정 메커니즘',
-    JP: '確定メカニズム',
-    CN: '保证机制',
-    EN: 'Guarantee mechanism',
-    TR: 'Garanti mekanizması',
+  const hardLine: Record<Region, (n: number) => string> = {
+    KR: (n) => `하드 피티: ${n}회 소환 시 5★ 확정`,
+    JP: (n) => `天井: ${n}回で確定`,
+    CN: (n) => `硬保底: 第${n}抽必出`,
+    EN: (n) => `Hard pity guaranteed at ${n} pulls`,
+    TR: (n) => `Sert acıma ${n} çekilişte garanti`,
   }
-  const lines: Record<Region, (n: number) => string> = {
-    KR: (n) => `${n}회 누적 시 확정 보상`,
-    JP: (n) => `累計${n}回で対象アイテムと交換可能`,
-    CN: (n) => `累计 ${n} 次后必出对应奖励`,
-    EN: (n) => `Cumulative ${n} pulls guarantees the featured reward`,
+  const guaranteeLine: Record<Region, (n: number) => string> = {
+    KR: (n) => `확정 메커니즘: ${n}회 누적 시 한정 5★ 확정`,
+    JP: (n) => `確定メカニズム: ${n}回累計で限定確定`,
+    CN: (n) => `限定保底: 累计${n}抽必出限定`,
+    EN: (n) => `Cumulative ${n} pulls guarantees the featured item`,
     TR: (n) => `${n} kümülatif çekilişte garanti ödül`,
   }
-  return `<h2>${escapeHtml(heading[region])}</h2><ul><li>${escapeHtml(lines[region](pool.guarantee_threshold))}</li></ul>`
+
+  const items: string[] = []
+  if (hasSoft) items.push(`<li>${escapeHtml(softLine[region](pool.soft_pity_start!))}</li>`)
+  if (hasHard) items.push(`<li>${escapeHtml(hardLine[region](pool.pity_threshold!))}</li>`)
+  if (hasGuarantee) items.push(`<li>${escapeHtml(guaranteeLine[region](pool.guarantee_threshold!))}</li>`)
+  return `<h2>${escapeHtml(heading[region])}</h2><ul>${items.join('')}</ul>`
 }
 
 function buildDomesticAgentLine(agentName?: string): string {

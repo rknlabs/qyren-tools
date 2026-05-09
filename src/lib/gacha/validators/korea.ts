@@ -131,9 +131,40 @@ export const KR5_refreshDiscipline: Validator = (ctx) => {
   ]
 }
 
+export const KR6_pityCompleteness: Validator = (ctx) => {
+  if (ctx.region !== 'KR') return []
+  const pool = ctx.rateSheet.pools.find((p) => p.pool_id === ctx.pool_id)
+  if (!pool) return []
+  if (!pool.pity_threshold) return []
+  if (pool.soft_pity_start && pool.soft_pity_start > 0) {
+    return [
+      {
+        pool_id: ctx.pool_id,
+        region: 'KR',
+        validator_id: 'KR6',
+        status: 'pass',
+        message: 'Pity disclosure includes both soft-pity ramp and hard-pity threshold',
+      },
+    ]
+  }
+  return [
+    {
+      pool_id: ctx.pool_id,
+      region: 'KR',
+      validator_id: 'KR6',
+      status: 'warn',
+      message:
+        'Pity threshold disclosed but soft-pity ramp is not. Korean GRAC inspects for partial pity disclosure.',
+      suggested_fix:
+        'If your game uses Genshin-style soft pity (rate increases gradually before the hard threshold), add soft_pity_start to your rate sheet for fuller disclosure.',
+    },
+  ]
+}
+
 export const koreaValidators = [
   KR2_pityDisclosure,
   KR3_guaranteeDisclosure,
   KR4_languageCoverage,
   KR5_refreshDiscipline,
+  KR6_pityCompleteness,
 ]

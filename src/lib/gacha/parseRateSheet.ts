@@ -24,6 +24,7 @@ const OPTIONAL_CSV_COLUMNS = [
   'banner_end',
   'pity_threshold',
   'pity_type',
+  'soft_pity_start',
   'guarantee_threshold',
   'name_ko',
   'name_ja',
@@ -140,6 +141,11 @@ function parseCsv(input: string): ParseResult {
       const pityType = row.pity_type?.trim()
       if (pityType === 'soft' || pityType === 'hard' || pityType === 'none') {
         pool.pity_type = pityType
+      }
+      const softPityStart = row.soft_pity_start?.trim()
+      if (softPityStart) {
+        const n = Number(softPityStart)
+        if (!Number.isNaN(n)) pool.soft_pity_start = n
       }
       const guarantee = row.guarantee_threshold?.trim()
       if (guarantee) {
