@@ -21,14 +21,11 @@ import { InlineNotice } from '../../components/gacha/ErrorStates'
 import type { Region, RateSheet } from '../../types/gacha/rateSheet'
 import type { ValidationResult } from '../../types/gacha/validation'
 import { validate, summarizeResults } from '../../lib/gacha/validate'
-import {
-  applyHashes,
-  renderAllBlocks,
-  type RenderedBlock,
-} from '../../lib/gacha/renderTemplate'
-import { sha256 } from '../../lib/gacha/hash'
+import { renderAllBlocks, type RenderedBlock } from '../../lib/gacha/renderTemplate'
+import { sha256, sha256Bytes } from '../../lib/gacha/hash'
 import { generateAuditTrail } from '../../lib/gacha/generateAuditJson'
-import { downloadBlob, exportZip } from '../../lib/gacha/exportZip'
+import { downloadBlob, exportZip, slugifyGameName } from '../../lib/gacha/exportZip'
+import { renderHtmlToPng } from '../../lib/gacha/renderPng'
 import {
   initPostHog,
   trackCaptureSubmitted,
@@ -162,21 +159,22 @@ export function ToolPage({ locale }: ToolPageProps) {
       trackValidationFailed(r.region, r.validator_id)
     }
 
-    const renderedRaw = renderAllBlocks(state.rateSheet, state.regions, {
+    const blocks = renderAllBlocks(state.rateSheet, state.regions, {
       toolVersion: TOOL_VERSION,
     })
-    const hashByKey = new Map<string, string>()
-    for (const block of renderedRaw) {
-      const hash = await sha256(block.htmlForHash)
-      hashByKey.set(`${block.region}:${block.pool_id}`, hash)
+    // HTML hash is sha256 of the exact HTML string the ZIP will contain.
+    // PNG hash is computed at export time from the rendered blob bytes.
+    const htmlHashByKey = new Map<string, string>()
+    for (const block of blocks) {
+      const hash = await sha256(block.html)
+      htmlHashByKey.set(`${block.region}:${block.pool_id}`, hash)
     }
-    const finalBlocks = applyHashes(renderedRaw, hashByKey)
 
     dispatch({
       type: 'VALIDATION_DONE',
       results,
-      blocks: finalBlocks,
-      blockHashByKey: hashByKey,
+      blocks,
+      blockHashByKey: htmlHashByKey,
     })
   }
 
@@ -216,12 +214,32 @@ export function ToolPage({ locale }: ToolPageProps) {
       includePng: kind === 'all' && state.output.formatPng,
       includeJson: kind === 'json' || (kind === 'all' && state.output.formatJson),
     }
+
+    let pngBlobByKey: Map<string, Blob> | undefined
+    let pngHashByKey: Map<string, string> | undefined
+    if (include.includePng) {
+      pngBlobByKey = new Map()
+      pngHashByKey = new Map()
+      for (const block of state.blocks) {
+        try {
+          const blob = await renderHtmlToPng(block.html)
+          const buf = await blob.arrayBuffer()
+          const key = `${block.region}:${block.pool_id}`
+          pngBlobByKey.set(key, blob)
+          pngHashByKey.set(key, await sha256Bytes(buf))
+        } catch (err) {
+          console.error(`PNG render failed for ${block.region}:${block.pool_id}`, err)
+        }
+      }
+    }
+
     const audit = await generateAuditTrail({
       rateSheet: state.rateSheet,
       regions: state.regions,
       validationResults: state.validationResults,
       blocks: state.blocks,
-      blockHashByKey: state.blockHashByKey,
+      htmlHashByKey: state.blockHashByKey,
+      pngHashByKey,
       toolVersion: TOOL_VERSION,
       ...include,
     })
@@ -229,14 +247,21 @@ export function ToolPage({ locale }: ToolPageProps) {
     if (kind === 'json') {
       const blob = new Blob([JSON.stringify(audit, null, 2)], { type: 'application/json' })
       const dateStamp = new Date().toISOString().split('T')[0]
-      const safe = state.rateSheet.metadata.game_id.replace(/[^a-zA-Z0-9_-]+/g, '-') || 'game'
-      downloadBlob(blob, `gacha-audit-${safe}-${dateStamp}.json`)
+      const slug = slugifyGameName(state.rateSheet.metadata.game_name_en, state.rateSheet.metadata.game_id)
+      downloadBlob(blob, `gacha-audit-${slug}-${dateStamp}.json`)
       trackDisclosureExported(state.regions, ['json'])
       dispatch({ type: 'EXPORT_DONE', formats: ['json'] })
       return
     }
 
-    const result = await exportZip(state.rateSheet, state.regions, state.blocks, audit, include)
+    const result = await exportZip({
+      rateSheet: state.rateSheet,
+      regions: state.regions,
+      blocks: state.blocks,
+      pngBlobByKey,
+      auditTrail: audit,
+      options: include,
+    })
     downloadBlob(result.blob, result.filename)
     trackDisclosureExported(state.regions, result.formats)
     dispatch({ type: 'EXPORT_DONE', formats: result.formats })

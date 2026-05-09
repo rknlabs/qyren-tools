@@ -15,16 +15,12 @@ const TEMPLATES: Record<Region, string> = {
 
 interface RenderOptions {
   toolVersion: string
-  blockHashPlaceholder?: string
 }
-
-const PLACEHOLDER_HASH = '____BLOCK_HASH____'
 
 export interface RenderedBlock {
   region: Region
   pool_id: string
   html: string
-  htmlForHash: string
 }
 
 export function renderAllBlocks(
@@ -35,19 +31,11 @@ export function renderAllBlocks(
   const blocks: RenderedBlock[] = []
   for (const region of regions) {
     for (const pool of rateSheet.pools) {
-      const htmlForHash = renderPool(rateSheet, pool, region, options.toolVersion, PLACEHOLDER_HASH)
-      blocks.push({ region, pool_id: pool.pool_id, html: htmlForHash, htmlForHash })
+      const html = renderPool(rateSheet, pool, region, options.toolVersion)
+      blocks.push({ region, pool_id: pool.pool_id, html })
     }
   }
   return blocks
-}
-
-export function applyHashes(blocks: RenderedBlock[], hashByKey: Map<string, string>): RenderedBlock[] {
-  return blocks.map((b) => {
-    const key = `${b.region}:${b.pool_id}`
-    const hash = hashByKey.get(key) ?? ''
-    return { ...b, html: b.htmlForHash.replace(PLACEHOLDER_HASH, hash) }
-  })
 }
 
 function renderPool(
@@ -55,10 +43,9 @@ function renderPool(
   pool: Pool,
   region: Region,
   toolVersion: string,
-  blockHash: string,
 ): string {
   const template = TEMPLATES[region]
-  const fields = buildFieldMap(rateSheet, pool, region, toolVersion, blockHash)
+  const fields = buildFieldMap(rateSheet, pool, region, toolVersion)
   return interpolate(template, fields)
 }
 
@@ -71,7 +58,6 @@ function buildFieldMap(
   pool: Pool,
   region: Region,
   toolVersion: string,
-  blockHash: string,
 ): Record<string, string> {
   const meta = rateSheet.metadata
   const game = pickLocalized(
@@ -102,23 +88,23 @@ function buildFieldMap(
     ? `${pool.banner_period.start} – ${pool.banner_period.end}`
     : '—'
 
-  const fields: Record<string, string> = {
+  return {
     game_name: escapeHtml(game),
     operator_name: escapeHtml(operator),
     banner_name: escapeHtml(banner),
     banner_period: escapeHtml(period),
     generated_at: escapeHtml(meta.generated_at),
     tool_version: escapeHtml(toolVersion),
-    block_hash: blockHash,
     rarity_aggregates: buildRarityAggregates(pool, region),
     item_rows: buildItemRows(pool, region),
     pity_section: buildPitySection(pool, region),
     guarantee_section: buildGuaranteeSection(pool, region),
     domestic_agent_line: buildDomesticAgentLine(meta.domestic_agent_name_ko),
-    outcome_history: escapeHtml(meta.outcome_history_url ?? '운營商应在游戏内或官网提供 / Operator must provide'),
+    outcome_history: escapeHtml(
+      meta.outcome_history_url ?? '运营商应在游戏内或官网提供 / Operator must provide',
+    ),
     alt_acquisition_section: buildAltAcquisitionSection(pool),
   }
-  return fields
 }
 
 function pickLocalized(
@@ -263,5 +249,3 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
 }
-
-export const HASH_PLACEHOLDER = PLACEHOLDER_HASH

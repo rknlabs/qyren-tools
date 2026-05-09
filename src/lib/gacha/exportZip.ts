@@ -3,7 +3,6 @@ import type { RateSheet, Region } from '../../types/gacha/rateSheet'
 import type { AuditTrail } from '../../types/gacha/audit'
 import { blockFilename } from './generateAuditJson'
 import type { RenderedBlock } from './renderTemplate'
-import { renderHtmlToPng } from './renderPng'
 
 export interface ExportOptions {
   includeHtml: boolean
@@ -17,13 +16,17 @@ export interface ExportResult {
   formats: string[]
 }
 
-export async function exportZip(
-  rateSheet: RateSheet,
-  regions: Region[],
-  blocks: RenderedBlock[],
-  auditTrail: AuditTrail,
-  options: ExportOptions,
-): Promise<ExportResult> {
+export interface ExportInputs {
+  rateSheet: RateSheet
+  regions: Region[]
+  blocks: RenderedBlock[]
+  pngBlobByKey?: Map<string, Blob>
+  auditTrail: AuditTrail
+  options: ExportOptions
+}
+
+export async function exportZip(inputs: ExportInputs): Promise<ExportResult> {
+  const { rateSheet, regions, blocks, pngBlobByKey, auditTrail, options } = inputs
   const zip = new JSZip()
   const formats: string[] = []
 
@@ -34,15 +37,12 @@ export async function exportZip(
     }
   }
 
-  if (options.includePng) {
+  if (options.includePng && pngBlobByKey) {
     formats.push('png')
     for (const block of blocks) {
-      try {
-        const png = await renderHtmlToPng(block.html)
-        zip.file(blockFilename(block.region, block.pool_id, 'png'), png)
-      } catch (err) {
-        console.error(`PNG render failed for ${block.region}:${block.pool_id}`, err)
-      }
+      const blob = pngBlobByKey.get(`${block.region}:${block.pool_id}`)
+      if (!blob) continue
+      zip.file(blockFilename(block.region, block.pool_id, 'png'), blob)
     }
   }
 
@@ -55,12 +55,23 @@ export async function exportZip(
 
   const blob = await zip.generateAsync({ type: 'blob' })
   const dateStamp = new Date().toISOString().split('T')[0]
-  const safeGameId = rateSheet.metadata.game_id.replace(/[^a-zA-Z0-9_-]+/g, '-') || 'game'
+  const slug = slugifyGameName(rateSheet.metadata.game_name_en, rateSheet.metadata.game_id)
   return {
     blob,
-    filename: `gacha-disclosure-${safeGameId}-${dateStamp}.zip`,
+    filename: `gacha-disclosure-${slug}-${dateStamp}.zip`,
     formats,
   }
+}
+
+export function slugifyGameName(name: string, fallback: string): string {
+  const fromName = slugify(name)
+  if (fromName) return fromName
+  const fromFallback = slugify(fallback)
+  return fromFallback || 'game'
+}
+
+function slugify(input: string): string {
+  return input.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_-]+/g, '')
 }
 
 function buildReadme(rateSheet: RateSheet, regions: Region[], audit: AuditTrail): string {
@@ -75,9 +86,9 @@ function buildReadme(rateSheet: RateSheet, regions: Region[], audit: AuditTrail)
     '',
     `Regions: ${regions.join(', ')}`,
     '',
-    'Files:',
+    'Files (SHA-256 of file bytes — verify with sha256sum):',
     ...audit.generated_blocks.map(
-      (b) => `  ${b.block_uri} (${b.format}, hash: ${b.block_hash})`,
+      (b) => `  ${b.block_uri} (${b.format}, ${b.block_hash})`,
     ),
     '  audit-trail.json (full audit record)',
     '',

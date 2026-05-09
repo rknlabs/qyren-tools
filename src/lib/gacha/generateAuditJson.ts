@@ -12,19 +12,23 @@ export interface AuditInputs {
   regions: Region[]
   validationResults: ValidationResult[]
   blocks: RenderedBlock[]
-  blockHashByKey: Map<string, string>
+  // Hash maps keyed by `${region}:${pool_id}`. Each entry is a SHA-256 of the
+  // exact bytes that get written into the ZIP, so a regulator running
+  // sha256sum on the file gets the same value as the audit reports.
+  htmlHashByKey: Map<string, string>
+  pngHashByKey?: Map<string, string>
   toolVersion: string
-  includePng: boolean
-  includeJson: boolean
   includeHtml: boolean
+  includePng: boolean
 }
 
 export async function generateAuditTrail(inputs: AuditInputs): Promise<AuditTrail> {
   const rateSheetHash = await sha256(canonicalizeJson(inputs.rateSheet))
   const generated: GeneratedBlock[] = []
   for (const block of inputs.blocks) {
-    const hash = inputs.blockHashByKey.get(`${block.region}:${block.pool_id}`) ?? ''
+    const key = `${block.region}:${block.pool_id}`
     if (inputs.includeHtml) {
+      const hash = inputs.htmlHashByKey.get(key) ?? ''
       generated.push({
         region: block.region,
         format: 'html',
@@ -33,6 +37,7 @@ export async function generateAuditTrail(inputs: AuditInputs): Promise<AuditTrai
       })
     }
     if (inputs.includePng) {
+      const hash = inputs.pngHashByKey?.get(key) ?? ''
       generated.push({
         region: block.region,
         format: 'png',
