@@ -108,6 +108,13 @@ export const en = {
       aiTooltip: 'Auto-translated from {primary}. Click to edit.',
       privacyNotice:
         'Auto-translation sends the text in this section to MyMemory’s public translation API. Avoid using it for confidential or unannounced game titles.',
+      attestModal: {
+        heading:
+          'Some Game Details fields are still showing auto-translated values that you have not reviewed or edited:',
+        sub: 'Auto-translated proper nouns frequently mismatch official store listings. Please confirm each field matches your published store listing before exporting.',
+        confirmButton: 'I have confirmed, continue',
+        editButton: 'Edit fields',
+      },
     },
   },
 }

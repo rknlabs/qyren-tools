@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from 'react'
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { Layout } from '../../components/Layout'
@@ -7,6 +7,10 @@ import { getGachaStrings, type GachaLocale } from '../../i18n/gacha'
 import { RateSheetUpload } from '../../components/gacha/RateSheetUpload'
 import { LoadedSheetSummary } from '../../components/gacha/LoadedSheetSummary'
 import { GameDetailsForm } from '../../components/gacha/GameDetailsForm'
+import {
+  AutoTranslationWarningModal,
+  type UnreviewedField,
+} from '../../components/gacha/AutoTranslationWarningModal'
 import { translateText } from '../../lib/gacha/translate'
 import { RegionSelector } from '../../components/gacha/RegionSelector'
 import {
@@ -28,6 +32,7 @@ import {
   buildEffectiveRateSheet,
   fieldId as buildFieldId,
   getEffectiveFieldValue,
+  REGION_LANGUAGE_LABEL,
   REGION_TRANSLATION_LOCALE,
   TRANSLATABLE_FIELD_PREFIXES,
   type Language,
@@ -265,11 +270,13 @@ export function ToolPage({ locale }: ToolPageProps) {
   const [parseFlash, setParseFlash] = useState<string | null>(null)
   const [translatingRegion, setTranslatingRegion] = useState<Language | null>(null)
   const [translationError, setTranslationError] = useState<string | null>(null)
-  // Set when the user clicks through the pre-export warning modal (wired in
-  // commit 7). Until then it stays null and the audit reports the safe
-  // "user did not attest" default.
-  const [attestedAt, setAttestedAt] = useState<string | null>(null)
-  void setAttestedAt // commit 7 wires the setter via the modal
+  // Set when the user clicks through the pre-export warning modal. The ref
+  // mirrors the state so async callbacks (performExport) can read the
+  // attestation timestamp without waiting for a re-render.
+  const [, setAttestedAt] = useState<string | null>(null)
+  const attestedAtRef = useRef<string | null>(null)
+  const [showAttestModal, setShowAttestModal] = useState(false)
+  const pendingAttestActionRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     initPostHog()
@@ -282,12 +289,57 @@ export function ToolPage({ locale }: ToolPageProps) {
     [state, effSheet],
   )
 
+  function getUnreviewedFields(): UnreviewedField[] {
+    const out: UnreviewedField[] = []
+    for (const [id, entry] of Object.entries(state.fieldSources)) {
+      if (entry.source !== 'auto_translated_unreviewed') continue
+      out.push({ id, label: getFieldDisplayLabel(id, strings), value: entry.value })
+    }
+    return out
+  }
+
+  function gateOnAttestation(action: () => void) {
+    if (attestedAtRef.current) {
+      action()
+      return
+    }
+    const unreviewed = getUnreviewedFields()
+    if (unreviewed.length === 0) {
+      action()
+      return
+    }
+    pendingAttestActionRef.current = action
+    setShowAttestModal(true)
+  }
+
+  function handleAttestConfirm() {
+    const ts = new Date().toISOString()
+    attestedAtRef.current = ts
+    setAttestedAt(ts)
+    setShowAttestModal(false)
+    const action = pendingAttestActionRef.current
+    pendingAttestActionRef.current = null
+    if (action) action()
+  }
+
+  function handleAttestCancel() {
+    setShowAttestModal(false)
+    pendingAttestActionRef.current = null
+  }
+
   async function runValidation() {
     if (!effSheet || state.regions.length === 0) return
     if (missingRequired.size > 0) {
       dispatch({ type: 'FORM_TOUCHED' })
       return
     }
+    gateOnAttestation(() => {
+      void runValidationInner()
+    })
+  }
+
+  async function runValidationInner() {
+    if (!effSheet || state.regions.length === 0) return
     dispatch({ type: 'START_VALIDATION' })
 
     const results = validate(effSheet, state.regions)
@@ -439,8 +491,8 @@ export function ToolPage({ locale }: ToolPageProps) {
       pngHashByKey,
       fieldSources: state.fieldSources,
       attestation: {
-        user_attested_at_export: attestedAt !== null,
-        attested_at: attestedAt ?? undefined,
+        user_attested_at_export: attestedAtRef.current !== null,
+        attested_at: attestedAtRef.current ?? undefined,
       },
       toolVersion: TOOL_VERSION,
       ...include,
@@ -471,7 +523,9 @@ export function ToolPage({ locale }: ToolPageProps) {
 
   function handleExport(kind: ExportKind) {
     trackExportAttempted()
-    dispatch({ type: 'EXPORT_REQUESTED', kind })
+    gateOnAttestation(() => {
+      dispatch({ type: 'EXPORT_REQUESTED', kind })
+    })
   }
 
   async function handleCaptureSuccess(payload: { email: string }) {
@@ -644,6 +698,52 @@ export function ToolPage({ locale }: ToolPageProps) {
           onCancel={() => dispatch({ type: 'CAPTURE_CANCELLED' })}
         />
       )}
+
+      {showAttestModal && (
+        <AutoTranslationWarningModal
+          strings={strings}
+          unreviewedFields={getUnreviewedFields()}
+          onConfirm={handleAttestConfirm}
+          onCancel={handleAttestCancel}
+        />
+      )}
     </Layout>
   )
+}
+
+// Build a short display label like "Korean game name" for an audit field id,
+// for the pre-export modal listing.
+function getFieldDisplayLabel(id: string, strings: ReturnType<typeof getGachaStrings>): string {
+  const t = strings.tool.gameDetails
+  if (id === 'studio_name') return t.studioName
+  if (id === 'banner_start') return t.bannerStart
+  if (id === 'banner_end') return t.bannerEnd
+  if (id === 'outcome_history_url') return t.outcomeHistoryUrl
+  if (id === 'domestic_agent_name_ko') return t.domesticAgent
+
+  const SUFFIX_TO_REGION: Record<string, Language> = {
+    en: 'EN',
+    ko: 'KR',
+    ja: 'JP',
+    zh_hans: 'CN',
+    tr: 'TR',
+  }
+
+  let kind: string | null = null
+  let suffix: string | null = null
+  if (id.startsWith('game_name_')) {
+    kind = t.gameNameLabel
+    suffix = id.slice('game_name_'.length)
+  } else if (id.startsWith('banner_name_')) {
+    kind = t.bannerNameLabel
+    suffix = id.slice('banner_name_'.length)
+  } else if (id.startsWith('operator_name_')) {
+    kind = t.operatorNameLabel
+    suffix = id.slice('operator_name_'.length)
+  }
+  if (!kind || !suffix) return id
+
+  const region = SUFFIX_TO_REGION[suffix]
+  const langLabel = region ? REGION_LANGUAGE_LABEL[region] : suffix
+  return `${langLabel} ${kind.toLowerCase()}`
 }
