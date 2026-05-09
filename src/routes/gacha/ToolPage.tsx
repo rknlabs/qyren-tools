@@ -6,11 +6,7 @@ import { SEO } from '../../components/SEO'
 import { getGachaStrings, type GachaLocale } from '../../i18n/gacha'
 import { RateSheetUpload } from '../../components/gacha/RateSheetUpload'
 import { LoadedSheetSummary } from '../../components/gacha/LoadedSheetSummary'
-import {
-  GameDetailsForm,
-  type BannerField,
-  type MetadataField,
-} from '../../components/gacha/GameDetailsForm'
+import { GameDetailsForm } from '../../components/gacha/GameDetailsForm'
 import { RegionSelector } from '../../components/gacha/RegionSelector'
 import {
   OutputConfig,
@@ -24,13 +20,14 @@ import {
   type UsageSummary,
 } from '../../components/gacha/GachaCaptureForm'
 import { InlineNotice } from '../../components/gacha/ErrorStates'
-import type {
-  Pool,
-  RateSheet,
-  RateSheetMetadata,
-  Region,
-} from '../../types/gacha/rateSheet'
+import type { RateSheet, Region } from '../../types/gacha/rateSheet'
 import type { ValidationResult } from '../../types/gacha/validation'
+import type { FieldSource, FieldSources } from '../../types/gacha/fieldSource'
+import {
+  buildEffectiveRateSheet,
+  getEffectiveFieldValue,
+  type Language,
+} from '../../lib/gacha/fieldSources'
 import { validate, summarizeResults } from '../../lib/gacha/validate'
 import { renderAllBlocks, type RenderedBlock } from '../../lib/gacha/renderTemplate'
 import { sha256, sha256Bytes } from '../../lib/gacha/hash'
@@ -58,23 +55,16 @@ const PATH_BY_LOCALE: Record<GachaLocale, string> = {
 
 type Phase = 'input' | 'validating' | 'results' | 'capturing' | 'exporting' | 'complete'
 
-type BannerEdits = Partial<{
-  banner_name_en: string
-  banner_name_ko: string
-  banner_name_ja: string
-  banner_name_zh_hans: string
-  banner_name_tr: string
-  banner_start: string
-  banner_end: string
-}>
-
 interface State {
   phase: Phase
   rateSheet?: RateSheet
-  // User edits layered on top of the parsed rate sheet. They survive re-uploads
-  // so a typed Studio name does not get wiped when the operator re-loads a CSV.
-  metadataEdits: Partial<RateSheetMetadata>
-  bannerEdits: Map<string, BannerEdits>
+  // User edits and AI-translated overrides layered on top of the parsed rate
+  // sheet. They survive re-uploads so a typed Studio name does not get wiped
+  // when the operator re-loads a CSV. Source per field tracks whether the
+  // value is user-typed, AI-translated and unreviewed, or AI-translated and
+  // then user-edited.
+  fieldSources: FieldSources
+  primaryLanguage: Language
   isOverseasOperator: boolean
   formTouched: boolean
   regions: Region[]
@@ -92,8 +82,8 @@ type Action =
   | { type: 'RATE_SHEET_CLEARED' }
   | { type: 'REGIONS_CHANGED'; regions: Region[] }
   | { type: 'OUTPUT_CHANGED'; output: OutputConfigState }
-  | { type: 'METADATA_FIELD_CHANGED'; field: MetadataField; value: string }
-  | { type: 'BANNER_FIELD_CHANGED'; poolId: string; field: BannerField; value: string }
+  | { type: 'FIELD_CHANGED'; fieldId: string; value: string }
+  | { type: 'PRIMARY_LANGUAGE_CHANGED'; language: Language }
   | { type: 'OVERSEAS_TOGGLED'; value: boolean }
   | { type: 'FORM_TOUCHED' }
   | { type: 'START_VALIDATION' }
@@ -111,8 +101,8 @@ type Action =
 
 const INITIAL: State = {
   phase: 'input',
-  metadataEdits: {},
-  bannerEdits: new Map(),
+  fieldSources: {},
+  primaryLanguage: 'EN',
   isOverseasOperator: false,
   formTouched: false,
   regions: ['KR', 'JP', 'CN', 'EN'],
@@ -135,21 +125,35 @@ function reducer(state: State, action: Action): State {
       return { ...state, rateSheet: action.rateSheet, phase: 'input' }
     case 'RATE_SHEET_CLEARED':
       return { ...state, rateSheet: undefined }
-    case 'REGIONS_CHANGED':
-      return { ...state, regions: action.regions }
+    case 'REGIONS_CHANGED': {
+      // If the current primary's region is no longer selected, fall back to
+      // the first selected region (or EN if nothing is selected).
+      const primary: Language = action.regions.includes(state.primaryLanguage)
+        ? state.primaryLanguage
+        : (action.regions[0] ?? 'EN')
+      return { ...state, regions: action.regions, primaryLanguage: primary }
+    }
     case 'OUTPUT_CHANGED':
       return { ...state, output: action.output }
-    case 'METADATA_FIELD_CHANGED':
+    case 'FIELD_CHANGED': {
+      // Source flip rules: typing in an auto-translated-unreviewed field
+      // promotes it to auto_translated_then_edited (preserves forensic).
+      // Otherwise the source is plain user_typed.
+      const prior = state.fieldSources[action.fieldId]
+      const nextSource: FieldSource =
+        prior?.source === 'auto_translated_unreviewed'
+          ? 'auto_translated_then_edited'
+          : 'user_typed'
       return {
         ...state,
-        metadataEdits: { ...state.metadataEdits, [action.field]: action.value },
+        fieldSources: {
+          ...state.fieldSources,
+          [action.fieldId]: { value: action.value, source: nextSource },
+        },
       }
-    case 'BANNER_FIELD_CHANGED': {
-      const next = new Map(state.bannerEdits)
-      const prev = next.get(action.poolId) ?? {}
-      next.set(action.poolId, { ...prev, [action.field]: action.value })
-      return { ...state, bannerEdits: next }
     }
+    case 'PRIMARY_LANGUAGE_CHANGED':
+      return { ...state, primaryLanguage: action.language }
     case 'OVERSEAS_TOGGLED':
       return { ...state, isOverseasOperator: action.value }
     case 'FORM_TOUCHED':
@@ -173,36 +177,15 @@ function reducer(state: State, action: Action): State {
     case 'EXPORT_DONE':
       return { ...state, phase: 'complete', exportFormats: action.formats }
     case 'RESET':
-      return { ...INITIAL, bannerEdits: new Map(), metadataEdits: {} }
+      return { ...INITIAL, fieldSources: {} }
     default:
       return state
   }
 }
 
-function applyBannerEdits(pool: Pool, edits?: BannerEdits): Pool {
-  if (!edits) return pool
-  const next: Pool = { ...pool }
-  if (edits.banner_name_en !== undefined) next.banner_name_en = edits.banner_name_en
-  if (edits.banner_name_ko !== undefined) next.banner_name_ko = edits.banner_name_ko
-  if (edits.banner_name_ja !== undefined) next.banner_name_ja = edits.banner_name_ja
-  if (edits.banner_name_zh_hans !== undefined) next.banner_name_zh_hans = edits.banner_name_zh_hans
-  if (edits.banner_name_tr !== undefined) next.banner_name_tr = edits.banner_name_tr
-  if (edits.banner_start !== undefined || edits.banner_end !== undefined) {
-    next.banner_period = {
-      start: edits.banner_start ?? pool.banner_period?.start ?? '',
-      end: edits.banner_end ?? pool.banner_period?.end ?? '',
-    }
-  }
-  return next
-}
-
 function effectiveRateSheet(state: State): RateSheet | undefined {
   if (!state.rateSheet) return undefined
-  return {
-    ...state.rateSheet,
-    metadata: { ...state.rateSheet.metadata, ...state.metadataEdits },
-    pools: state.rateSheet.pools.map((p) => applyBannerEdits(p, state.bannerEdits.get(p.pool_id))),
-  }
+  return buildEffectiveRateSheet(state.rateSheet, state.fieldSources)
 }
 
 function nonEmpty(s: string | undefined): boolean {
@@ -464,20 +447,24 @@ export function ToolPage({ locale }: ToolPageProps) {
               selected={state.regions}
               onChange={(regions) => dispatch({ type: 'REGIONS_CHANGED', regions })}
             />
-            {effSheet && (
+            {effSheet && state.rateSheet && (
               <GameDetailsForm
                 strings={strings}
-                metadata={effSheet.metadata}
                 pools={effSheet.pools}
                 selectedRegions={state.regions}
+                primaryLanguage={state.primaryLanguage}
                 isOverseasOperator={state.isOverseasOperator}
                 formTouched={state.formTouched}
                 missingRequired={missingRequired}
-                onMetadataChange={(field, value) =>
-                  dispatch({ type: 'METADATA_FIELD_CHANGED', field, value })
+                getValue={(fieldId) =>
+                  getEffectiveFieldValue(fieldId, state.rateSheet!, state.fieldSources)
                 }
-                onBannerChange={(poolId, field, value) =>
-                  dispatch({ type: 'BANNER_FIELD_CHANGED', poolId, field, value })
+                getSource={(fieldId) => state.fieldSources[fieldId]?.source}
+                onFieldChange={(fieldId, value) =>
+                  dispatch({ type: 'FIELD_CHANGED', fieldId, value })
+                }
+                onPrimaryLanguageChange={(language) =>
+                  dispatch({ type: 'PRIMARY_LANGUAGE_CHANGED', language })
                 }
                 onOverseasToggle={(value) => dispatch({ type: 'OVERSEAS_TOGGLED', value })}
               />
