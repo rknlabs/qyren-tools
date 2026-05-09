@@ -11,7 +11,7 @@ import type { RateSheet } from '../../types/gacha/rateSheet'
 
 interface RateSheetUploadProps {
   strings: GachaStrings
-  onParsed: (rateSheet: RateSheet, raw: string) => void
+  onParsed: (rateSheet: RateSheet) => void
   onError: (errors: ParseError[]) => void
 }
 
@@ -30,11 +30,16 @@ export function RateSheetUpload({ strings, onParsed, onError }: RateSheetUploadP
   const [dragOver, setDragOver] = useState(false)
   const [parseErrors, setParseErrors] = useState<ParseError[]>([])
 
-  function handleFile(input: string) {
+  function handleInput(input: string, opts?: { syncTextarea?: boolean }) {
     const result = parseRateSheet(input)
     if (result.ok && result.rateSheet) {
       setParseErrors([])
-      onParsed(result.rateSheet, input)
+      // Show what got loaded in the textarea so the user has visible
+      // feedback and an editable representation.
+      if (opts?.syncTextarea) {
+        setPasteValue(JSON.stringify(result.rateSheet, null, 2))
+      }
+      onParsed(result.rateSheet)
     } else {
       setParseErrors(result.errors)
       onError(result.errors)
@@ -44,7 +49,9 @@ export function RateSheetUpload({ strings, onParsed, onError }: RateSheetUploadP
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    file.text().then(handleFile)
+    file.text().then((text) => handleInput(text, { syncTextarea: true }))
+    // Reset so picking the same file again still fires onChange.
+    e.target.value = ''
   }
 
   function handleDrop(e: DragEvent<HTMLDivElement>) {
@@ -52,18 +59,24 @@ export function RateSheetUpload({ strings, onParsed, onError }: RateSheetUploadP
     setDragOver(false)
     const file = e.dataTransfer.files[0]
     if (!file) return
-    file.text().then(handleFile)
+    file.text().then((text) => handleInput(text, { syncTextarea: true }))
   }
 
   function handlePasteSubmit() {
     if (!pasteValue.trim()) return
-    handleFile(pasteValue)
+    handleInput(pasteValue)
   }
 
   async function loadSample(file: string) {
-    const res = await fetch(`/samples/gacha/${file}`)
-    const text = await res.text()
-    handleFile(text)
+    try {
+      const res = await fetch(`/samples/gacha/${file}`)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const text = await res.text()
+      handleInput(text, { syncTextarea: true })
+    } catch (err) {
+      setParseErrors([{ message: `Failed to load sample: ${(err as Error).message}` }])
+      onError([{ message: `Failed to load sample: ${(err as Error).message}` }])
+    }
   }
 
   const sampleLabel: Record<string, string> = {
@@ -78,6 +91,10 @@ export function RateSheetUpload({ strings, onParsed, onError }: RateSheetUploadP
       <h2 className="text-base font-semibold text-fg mb-4">{t.stepUpload}</h2>
 
       <div
+        onDragEnter={(e) => {
+          e.preventDefault()
+          setDragOver(true)
+        }}
         onDragOver={(e) => {
           e.preventDefault()
           setDragOver(true)
@@ -116,7 +133,7 @@ export function RateSheetUpload({ strings, onParsed, onError }: RateSheetUploadP
           value={pasteValue}
           onChange={(e) => setPasteValue(e.target.value)}
           placeholder={t.pasteJsonPlaceholder}
-          className="w-full h-32 rounded-md border border-divider bg-bg p-3 text-xs font-mono text-fg placeholder:text-fg-subtle focus:outline-none focus:border-cyan/60"
+          className="w-full h-40 rounded-md border border-divider bg-bg p-3 text-xs font-mono text-fg placeholder:text-fg-subtle focus:outline-none focus:border-cyan/60"
         />
         <button
           type="button"
@@ -135,7 +152,7 @@ export function RateSheetUpload({ strings, onParsed, onError }: RateSheetUploadP
             <button
               key={s.key}
               type="button"
-              onClick={() => loadSample(s.file)}
+              onClick={() => void loadSample(s.file)}
               className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-md border border-divider bg-bg text-fg-muted hover:text-fg hover:border-cyan/40 transition"
             >
               <FileText size={12} />

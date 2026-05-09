@@ -1,10 +1,16 @@
-import { useEffect, useReducer, useState } from 'react'
+import { useEffect, useMemo, useReducer, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { Layout } from '../../components/Layout'
 import { SEO } from '../../components/SEO'
 import { getGachaStrings, type GachaLocale } from '../../i18n/gacha'
 import { RateSheetUpload } from '../../components/gacha/RateSheetUpload'
+import { LoadedSheetSummary } from '../../components/gacha/LoadedSheetSummary'
+import {
+  GameDetailsForm,
+  type BannerField,
+  type MetadataField,
+} from '../../components/gacha/GameDetailsForm'
 import { RegionSelector } from '../../components/gacha/RegionSelector'
 import {
   OutputConfig,
@@ -18,7 +24,12 @@ import {
   type UsageSummary,
 } from '../../components/gacha/GachaCaptureForm'
 import { InlineNotice } from '../../components/gacha/ErrorStates'
-import type { Region, RateSheet } from '../../types/gacha/rateSheet'
+import type {
+  Pool,
+  RateSheet,
+  RateSheetMetadata,
+  Region,
+} from '../../types/gacha/rateSheet'
 import type { ValidationResult } from '../../types/gacha/validation'
 import { validate, summarizeResults } from '../../lib/gacha/validate'
 import { renderAllBlocks, type RenderedBlock } from '../../lib/gacha/renderTemplate'
@@ -47,9 +58,25 @@ const PATH_BY_LOCALE: Record<GachaLocale, string> = {
 
 type Phase = 'input' | 'validating' | 'results' | 'capturing' | 'exporting' | 'complete'
 
+type BannerEdits = Partial<{
+  banner_name_en: string
+  banner_name_ko: string
+  banner_name_ja: string
+  banner_name_zh_hans: string
+  banner_name_tr: string
+  banner_start: string
+  banner_end: string
+}>
+
 interface State {
   phase: Phase
   rateSheet?: RateSheet
+  // User edits layered on top of the parsed rate sheet. They survive re-uploads
+  // so a typed Studio name does not get wiped when the operator re-loads a CSV.
+  metadataEdits: Partial<RateSheetMetadata>
+  bannerEdits: Map<string, BannerEdits>
+  isOverseasOperator: boolean
+  formTouched: boolean
   regions: Region[]
   output: OutputConfigState
   validationResults: ValidationResult[]
@@ -65,6 +92,10 @@ type Action =
   | { type: 'RATE_SHEET_CLEARED' }
   | { type: 'REGIONS_CHANGED'; regions: Region[] }
   | { type: 'OUTPUT_CHANGED'; output: OutputConfigState }
+  | { type: 'METADATA_FIELD_CHANGED'; field: MetadataField; value: string }
+  | { type: 'BANNER_FIELD_CHANGED'; poolId: string; field: BannerField; value: string }
+  | { type: 'OVERSEAS_TOGGLED'; value: boolean }
+  | { type: 'FORM_TOUCHED' }
   | { type: 'START_VALIDATION' }
   | {
       type: 'VALIDATION_DONE'
@@ -80,6 +111,10 @@ type Action =
 
 const INITIAL: State = {
   phase: 'input',
+  metadataEdits: {},
+  bannerEdits: new Map(),
+  isOverseasOperator: false,
+  formTouched: false,
   regions: ['KR', 'JP', 'CN', 'EN'],
   output: {
     formatHtml: true,
@@ -104,6 +139,21 @@ function reducer(state: State, action: Action): State {
       return { ...state, regions: action.regions }
     case 'OUTPUT_CHANGED':
       return { ...state, output: action.output }
+    case 'METADATA_FIELD_CHANGED':
+      return {
+        ...state,
+        metadataEdits: { ...state.metadataEdits, [action.field]: action.value },
+      }
+    case 'BANNER_FIELD_CHANGED': {
+      const next = new Map(state.bannerEdits)
+      const prev = next.get(action.poolId) ?? {}
+      next.set(action.poolId, { ...prev, [action.field]: action.value })
+      return { ...state, bannerEdits: next }
+    }
+    case 'OVERSEAS_TOGGLED':
+      return { ...state, isOverseasOperator: action.value }
+    case 'FORM_TOUCHED':
+      return { ...state, formTouched: true }
     case 'START_VALIDATION':
       return { ...state, phase: 'validating' }
     case 'VALIDATION_DONE':
@@ -123,10 +173,86 @@ function reducer(state: State, action: Action): State {
     case 'EXPORT_DONE':
       return { ...state, phase: 'complete', exportFormats: action.formats }
     case 'RESET':
-      return { ...INITIAL }
+      return { ...INITIAL, bannerEdits: new Map(), metadataEdits: {} }
     default:
       return state
   }
+}
+
+function applyBannerEdits(pool: Pool, edits?: BannerEdits): Pool {
+  if (!edits) return pool
+  const next: Pool = { ...pool }
+  if (edits.banner_name_en !== undefined) next.banner_name_en = edits.banner_name_en
+  if (edits.banner_name_ko !== undefined) next.banner_name_ko = edits.banner_name_ko
+  if (edits.banner_name_ja !== undefined) next.banner_name_ja = edits.banner_name_ja
+  if (edits.banner_name_zh_hans !== undefined) next.banner_name_zh_hans = edits.banner_name_zh_hans
+  if (edits.banner_name_tr !== undefined) next.banner_name_tr = edits.banner_name_tr
+  if (edits.banner_start !== undefined || edits.banner_end !== undefined) {
+    next.banner_period = {
+      start: edits.banner_start ?? pool.banner_period?.start ?? '',
+      end: edits.banner_end ?? pool.banner_period?.end ?? '',
+    }
+  }
+  return next
+}
+
+function effectiveRateSheet(state: State): RateSheet | undefined {
+  if (!state.rateSheet) return undefined
+  return {
+    ...state.rateSheet,
+    metadata: { ...state.rateSheet.metadata, ...state.metadataEdits },
+    pools: state.rateSheet.pools.map((p) => applyBannerEdits(p, state.bannerEdits.get(p.pool_id))),
+  }
+}
+
+function nonEmpty(s: string | undefined): boolean {
+  return !!s && s.trim() !== ''
+}
+
+function getMissingRequired(state: State, sheet: RateSheet): Set<string> {
+  const missing = new Set<string>()
+  const m = sheet.metadata
+  if (!nonEmpty(m.studio_name)) missing.add('studio_name')
+  if (!nonEmpty(m.game_name_en)) missing.add('game_name_en')
+  if (!nonEmpty(m.operator_name_en)) missing.add('operator_name_en')
+
+  for (const region of state.regions) {
+    if (region === 'KR') {
+      if (!nonEmpty(m.game_name_ko)) missing.add('game_name_ko')
+      if (!nonEmpty(m.operator_name_ko)) missing.add('operator_name_ko')
+      if (state.isOverseasOperator && !nonEmpty(m.domestic_agent_name_ko)) {
+        missing.add('domestic_agent_name_ko')
+      }
+    }
+    if (region === 'JP') {
+      if (!nonEmpty(m.game_name_ja)) missing.add('game_name_ja')
+      if (!nonEmpty(m.operator_name_ja)) missing.add('operator_name_ja')
+    }
+    if (region === 'CN') {
+      if (!nonEmpty(m.game_name_zh_hans)) missing.add('game_name_zh_hans')
+      if (!nonEmpty(m.operator_name_zh_hans)) missing.add('operator_name_zh_hans')
+      if (!nonEmpty(m.outcome_history_url)) missing.add('outcome_history_url')
+    }
+    if (region === 'TR') {
+      if (!nonEmpty(m.game_name_tr)) missing.add('game_name_tr')
+      if (!nonEmpty(m.operator_name_tr)) missing.add('operator_name_tr')
+    }
+  }
+
+  if (sheet.pools.length === 1) {
+    const p = sheet.pools[0]
+    if (!nonEmpty(p.banner_name_en)) missing.add('banner_name_en')
+    if (!nonEmpty(p.banner_period?.start)) missing.add('banner_start')
+    if (!nonEmpty(p.banner_period?.end)) missing.add('banner_end')
+    for (const region of state.regions) {
+      if (region === 'KR' && !nonEmpty(p.banner_name_ko)) missing.add('banner_name_ko')
+      if (region === 'JP' && !nonEmpty(p.banner_name_ja)) missing.add('banner_name_ja')
+      if (region === 'CN' && !nonEmpty(p.banner_name_zh_hans)) missing.add('banner_name_zh_hans')
+      if (region === 'TR' && !nonEmpty(p.banner_name_tr)) missing.add('banner_name_tr')
+    }
+  }
+
+  return missing
 }
 
 interface ToolPageProps {
@@ -144,11 +270,21 @@ export function ToolPage({ locale }: ToolPageProps) {
     trackToolLoaded()
   }, [])
 
+  const effSheet = useMemo(() => effectiveRateSheet(state), [state])
+  const missingRequired = useMemo(
+    () => (effSheet ? getMissingRequired(state, effSheet) : new Set<string>()),
+    [state, effSheet],
+  )
+
   async function runValidation() {
-    if (!state.rateSheet || state.regions.length === 0) return
+    if (!effSheet || state.regions.length === 0) return
+    if (missingRequired.size > 0) {
+      dispatch({ type: 'FORM_TOUCHED' })
+      return
+    }
     dispatch({ type: 'START_VALIDATION' })
 
-    const results = validate(state.rateSheet, state.regions)
+    const results = validate(effSheet, state.regions)
     const summary = summarizeResults(results)
     trackValidationCompleted(
       summary.regionsPassing,
@@ -159,7 +295,7 @@ export function ToolPage({ locale }: ToolPageProps) {
       trackValidationFailed(r.region, r.validator_id)
     }
 
-    const blocks = renderAllBlocks(state.rateSheet, state.regions, {
+    const blocks = renderAllBlocks(effSheet, state.regions, {
       toolVersion: TOOL_VERSION,
     })
     // HTML hash is sha256 of the exact HTML string the ZIP will contain.
@@ -207,7 +343,8 @@ export function ToolPage({ locale }: ToolPageProps) {
   }
 
   async function performExport() {
-    if (!state.rateSheet || !state.pendingExport) return
+    const sheet = effectiveRateSheet(state)
+    if (!sheet || !state.pendingExport) return
     const kind = state.pendingExport
     const include = {
       includeHtml: kind === 'html' || (kind === 'all' && state.output.formatHtml),
@@ -234,7 +371,7 @@ export function ToolPage({ locale }: ToolPageProps) {
     }
 
     const audit = await generateAuditTrail({
-      rateSheet: state.rateSheet,
+      rateSheet: sheet,
       regions: state.regions,
       validationResults: state.validationResults,
       blocks: state.blocks,
@@ -247,7 +384,7 @@ export function ToolPage({ locale }: ToolPageProps) {
     if (kind === 'json') {
       const blob = new Blob([JSON.stringify(audit, null, 2)], { type: 'application/json' })
       const dateStamp = new Date().toISOString().split('T')[0]
-      const slug = slugifyGameName(state.rateSheet.metadata.game_name_en, state.rateSheet.metadata.game_id)
+      const slug = slugifyGameName(sheet.metadata.game_name_en, sheet.metadata.game_id)
       downloadBlob(blob, `gacha-audit-${slug}-${dateStamp}.json`)
       trackDisclosureExported(state.regions, ['json'])
       dispatch({ type: 'EXPORT_DONE', formats: ['json'] })
@@ -255,7 +392,7 @@ export function ToolPage({ locale }: ToolPageProps) {
     }
 
     const result = await exportZip({
-      rateSheet: state.rateSheet,
+      rateSheet: sheet,
       regions: state.regions,
       blocks: state.blocks,
       pngBlobByKey,
@@ -288,6 +425,7 @@ export function ToolPage({ locale }: ToolPageProps) {
     state.rateSheet !== undefined && state.regions.length > 0 && state.phase === 'input'
 
   const failedCount = state.validationResults.filter((r) => r.status === 'fail').length
+  const validateBlocked = state.formTouched && missingRequired.size > 0
 
   return (
     <Layout>
@@ -320,6 +458,25 @@ export function ToolPage({ locale }: ToolPageProps) {
               onParsed={(rs) => handleParsed(rs)}
               onError={(errors) => setParseFlash(errors[0]?.message ?? t.errors.malformed)}
             />
+            {effSheet && <LoadedSheetSummary strings={strings} rateSheet={effSheet} />}
+            {effSheet && (
+              <GameDetailsForm
+                strings={strings}
+                metadata={effSheet.metadata}
+                pools={effSheet.pools}
+                selectedRegions={state.regions}
+                isOverseasOperator={state.isOverseasOperator}
+                formTouched={state.formTouched}
+                missingRequired={missingRequired}
+                onMetadataChange={(field, value) =>
+                  dispatch({ type: 'METADATA_FIELD_CHANGED', field, value })
+                }
+                onBannerChange={(poolId, field, value) =>
+                  dispatch({ type: 'BANNER_FIELD_CHANGED', poolId, field, value })
+                }
+                onOverseasToggle={(value) => dispatch({ type: 'OVERSEAS_TOGGLED', value })}
+              />
+            )}
             <RegionSelector
               strings={strings}
               selected={state.regions}
@@ -330,7 +487,12 @@ export function ToolPage({ locale }: ToolPageProps) {
               value={state.output}
               onChange={(output) => dispatch({ type: 'OUTPUT_CHANGED', output })}
             />
-            <div className="flex justify-end">
+            <div className="flex justify-end items-center gap-3">
+              {validateBlocked && (
+                <span className="text-xs text-alert">
+                  {strings.tool.gameDetails.missingFieldsHeading}
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => void runValidation()}
