@@ -112,6 +112,8 @@ export const en = {
         'Auto-translation sends the text in this section to MyMemory’s public translation API. Avoid using it for confidential or unannounced game titles.',
       qualityNotice:
         'Auto-translations are starting points and may not handle proper nouns or brand names consistently. Review and edit each field against your published store listings before exporting.',
+      operatorTranslationNote:
+        'Legal entity names are not auto-translated. Enter the registered local-entity name for each region if it differs from your English entity name.',
       attestModal: {
         heading:
           'Some Game Details fields are still showing auto-translated values that you have not reviewed or edited:',

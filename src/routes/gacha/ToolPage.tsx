@@ -34,6 +34,7 @@ import {
   getEffectiveFieldValue,
   REGION_LANGUAGE_LABEL,
   REGION_TRANSLATION_LOCALE,
+  suffixForRegion,
   TRANSLATABLE_FIELD_PREFIXES,
   type Language,
 } from '../../lib/gacha/fieldSources'
@@ -418,6 +419,30 @@ export function ToolPage({ locale }: ToolPageProps) {
           console.error(`Translation failed for ${sourceField} → ${targetField}:`, result.error)
         }
       }
+
+      // Copy operator_name from primary to target verbatim. Legal entity
+      // names are not auto-translated; the inline note in LanguageCard tells
+      // the user to edit if their registered local-entity name differs.
+      // Skip when the target already has a user-controlled value so a
+      // confirmed clobber on game/banner does not silently overwrite a
+      // typed operator name.
+      const opSourceField = `operator_name_${suffixForRegion(primary)}`
+      const opTargetField = `operator_name_${suffixForRegion(target)}`
+      const opTargetSource = state.fieldSources[opTargetField]?.source
+      const opTargetIsUserControlled =
+        opTargetSource === 'user_typed' ||
+        opTargetSource === 'auto_translated_then_edited'
+      if (!opTargetIsUserControlled) {
+        const opValue = getEffectiveFieldValue(
+          opSourceField,
+          state.rateSheet,
+          state.fieldSources,
+        )
+        if (opValue.trim()) {
+          dispatch({ type: 'FIELD_CHANGED', fieldId: opTargetField, value: opValue })
+        }
+      }
+
       if (anyFailed) {
         setTranslationError(strings.tool.gameDetails.translationFailed)
       }

@@ -111,6 +111,8 @@ export const zhHans = {
         '自动翻译会将本节文本发送至 MyMemory 公共翻译 API。涉及未公开或机密游戏标题时请勿使用。',
       qualityNotice:
         '自动翻译只是起点，可能无法一致处理专有名词或品牌名称。导出之前请将每个字段与您发布的商店列表逐一核对并编辑。',
+      operatorTranslationNote:
+        'Legal entity names are not auto-translated. Enter the registered local-entity name for each region if it differs from your English entity name.',
       attestModal: {
         heading: '部分游戏信息字段仍显示您尚未复核或编辑的自动翻译值：',
         sub: '自动翻译的专有名词经常与官方商店列表不一致。导出之前，请确认每个字段与您发布的商店列表一致。',

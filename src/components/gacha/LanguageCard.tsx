@@ -117,22 +117,29 @@ export function LanguageCard({
             )}
           />
         )}
-        <CardField
-          fieldId={`operator_name_${suffix}`}
-          label={t.operatorNameLabel}
-          required
-          formTouched={formTouched}
-          missingRequired={missingRequired}
-          getValue={getValue}
-          getSource={getSource}
-          onFieldChange={onFieldChange}
-          requiredLabel={t.requiredFieldShort}
-          aiBadge={t.aiBadge}
-          aiTooltip={t.aiTooltip.replace(
-            '{primary}',
-            primaryLanguageLabel ?? '',
+        <div>
+          <CardField
+            fieldId={`operator_name_${suffix}`}
+            label={t.operatorNameLabel}
+            required
+            formTouched={formTouched}
+            missingRequired={missingRequired}
+            getValue={getValue}
+            getSource={getSource}
+            onFieldChange={onFieldChange}
+            requiredLabel={t.requiredFieldShort}
+            aiBadge={t.aiBadge}
+            aiTooltip={t.aiTooltip.replace(
+              '{primary}',
+              primaryLanguageLabel ?? '',
+            )}
+          />
+          {!isPrimary && (
+            <p className="text-[11px] text-fg-subtle leading-relaxed mt-1.5">
+              {t.operatorTranslationNote}
+            </p>
           )}
-        />
+        </div>
 
         {region === 'KR' && (
           <KoreaSpecificFields

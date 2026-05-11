@@ -42,15 +42,17 @@ export function suffixForRegion(region: Language): string {
 
 export const ALL_LANGUAGES_ORDER: Language[] = ['EN', 'KR', 'JP', 'CN', 'TR']
 
-// Translatable field types — game name, banner name, operator name. These are
-// the ones the "Translate from {Primary}" button reads/writes. Region-specific
-// fields like outcome_history_url and domestic_agent_name_ko have no semantic
-// counterpart in other languages, so they stay manual.
-export const TRANSLATABLE_FIELD_PREFIXES = [
-  'game_name',
-  'banner_name',
-  'operator_name',
-] as const
+// Translatable field types — game name and banner name. These are the ones
+// the "Translate from {Primary}" button sends through MyMemory. operator_name
+// is intentionally excluded: legal entity names are not machine-translated
+// targets (the registered local-entity name often differs from a literal
+// translation, especially when a regional publishing partner is the listed
+// operator). It is copied verbatim from primary to target in the translate
+// handler instead, with an inline note in the card prompting the user to
+// edit if their local-entity name differs. Region-specific fields like
+// outcome_history_url and domestic_agent_name_ko have no semantic counterpart
+// in other languages, so they stay manual.
+export const TRANSLATABLE_FIELD_PREFIXES = ['game_name', 'banner_name'] as const
 
 export type TranslatableFieldPrefix = (typeof TRANSLATABLE_FIELD_PREFIXES)[number]
 
