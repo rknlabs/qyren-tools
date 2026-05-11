@@ -5,7 +5,7 @@ import jaTemplate from './templates/ja.html?raw'
 import zhTemplate from './templates/zh-Hans.html?raw'
 import enTemplate from './templates/en.html?raw'
 import trTemplate from './templates/tr.html?raw'
-import { suffixForRegion, TRANSLATABLE_FIELD_PREFIXES } from './fieldSources'
+import { pickOperatorName, suffixForRegion, TRANSLATABLE_FIELD_PREFIXES } from './fieldSources'
 
 const TEMPLATES: Record<Region, string> = {
   KR: koTemplate,
@@ -102,14 +102,7 @@ function buildFieldMap(
     meta.game_name_zh_hans,
     meta.game_name_tr,
   )
-  const operator = pickLocalized(
-    region,
-    meta.operator_name_en,
-    meta.operator_name_ko,
-    meta.operator_name_ja,
-    meta.operator_name_zh_hans,
-    meta.operator_name_tr,
-  )
+  const operator = pickOperatorName(meta, region)
   const banner = pickLocalized(
     region,
     pool.banner_name_en ?? pool.banner_id ?? pool.pool_id,

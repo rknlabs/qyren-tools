@@ -104,6 +104,34 @@ function readFromRateSheet(fieldId: string, rateSheet: RateSheet): string {
   return ''
 }
 
+// Returns the operator name to render for a given region, falling back to
+// the en value when the locale-specific value is missing or empty. Designed
+// for use by the disclosure-block renderer and any future caller that needs
+// "what the user / regulator will see" — keeps the en-fallback semantics in
+// one place so render paths cannot diverge from audit paths.
+//
+// Validator behavior is intentionally NOT routed through this accessor:
+// missingRequired still flags missing locale-specific operator names so the
+// form blocks export until the studio fills them in. The fallback is the
+// failsafe for rendering, not a license to skip localization.
+export function pickOperatorName(meta: RateSheetMetadata, region: Region): string {
+  const en = meta.operator_name_en
+  switch (region) {
+    case 'KR':
+      return meta.operator_name_ko && meta.operator_name_ko.trim() ? meta.operator_name_ko : en
+    case 'JP':
+      return meta.operator_name_ja && meta.operator_name_ja.trim() ? meta.operator_name_ja : en
+    case 'CN':
+      return meta.operator_name_zh_hans && meta.operator_name_zh_hans.trim()
+        ? meta.operator_name_zh_hans
+        : en
+    case 'TR':
+      return meta.operator_name_tr && meta.operator_name_tr.trim() ? meta.operator_name_tr : en
+    default:
+      return en
+  }
+}
+
 // Compose an effective RateSheet from the parsed sheet + field overrides.
 // Used by the validators, template renderer, and audit JSON so that
 // user-typed and AI-translated values flow through every downstream output.

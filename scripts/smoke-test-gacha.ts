@@ -12,7 +12,8 @@ import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { parseRateSheet } from '../src/lib/gacha/parseRateSheet.ts'
 import { validate } from '../src/lib/gacha/validate.ts'
-import type { Region } from '../src/types/gacha/rateSheet.ts'
+import { pickOperatorName } from '../src/lib/gacha/fieldSources.ts'
+import type { Region, RateSheetMetadata } from '../src/types/gacha/rateSheet.ts'
 import type { ValidationResult } from '../src/types/gacha/validation.ts'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -236,6 +237,82 @@ for (const c of CASES) {
   } else {
     console.error(`✗ ${c.label} (${counts})`)
     for (const d of detail) console.error(`  ${d}`)
+    totalFailed++
+  }
+}
+
+// Accessor-level tests for pickOperatorName. Keeps the en-fallback contract
+// honest so render paths cannot silently drift from audit paths.
+function makeMeta(overrides: Partial<RateSheetMetadata>): RateSheetMetadata {
+  return {
+    studio_name: 'Example Studio',
+    game_id: 'g1',
+    game_name_en: 'Game',
+    rate_sheet_version: '1.0.0',
+    generated_at: '2026-05-09T00:00:00Z',
+    operator_name_en: 'Example Studio Inc.',
+    ...overrides,
+  }
+}
+
+interface AccessorCase {
+  label: string
+  meta: RateSheetMetadata
+  region: Region
+  expect: string
+}
+
+const ACCESSOR_CASES: AccessorCase[] = [
+  {
+    label: 'pickOperatorName: localized value present → returns localized',
+    meta: makeMeta({ operator_name_ko: '예시 스튜디오 주식회사' }),
+    region: 'KR',
+    expect: '예시 스튜디오 주식회사',
+  },
+  {
+    label: 'pickOperatorName: localized empty string → falls back to en',
+    meta: makeMeta({ operator_name_ko: '' }),
+    region: 'KR',
+    expect: 'Example Studio Inc.',
+  },
+  {
+    label: 'pickOperatorName: localized whitespace → falls back to en',
+    meta: makeMeta({ operator_name_ja: '   ' }),
+    region: 'JP',
+    expect: 'Example Studio Inc.',
+  },
+  {
+    label: 'pickOperatorName: localized undefined → falls back to en',
+    meta: makeMeta({}),
+    region: 'CN',
+    expect: 'Example Studio Inc.',
+  },
+  {
+    label: 'pickOperatorName: en empty and localized missing → returns empty',
+    meta: makeMeta({ operator_name_en: '' }),
+    region: 'KR',
+    expect: '',
+  },
+  {
+    label: 'pickOperatorName: EN region always returns en',
+    meta: makeMeta({ operator_name_ko: '예시', operator_name_ja: 'Example株式会社' }),
+    region: 'EN',
+    expect: 'Example Studio Inc.',
+  },
+  {
+    label: 'pickOperatorName: TR region falls back to en when tr missing',
+    meta: makeMeta({}),
+    region: 'TR',
+    expect: 'Example Studio Inc.',
+  },
+]
+
+for (const c of ACCESSOR_CASES) {
+  const actual = pickOperatorName(c.meta, c.region)
+  if (actual === c.expect) {
+    console.log(`✓ ${c.label}`)
+  } else {
+    console.error(`✗ ${c.label}: expected ${JSON.stringify(c.expect)}, got ${JSON.stringify(actual)}`)
     totalFailed++
   }
 }
