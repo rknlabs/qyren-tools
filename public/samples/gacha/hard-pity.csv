@@ -5,6 +5,9 @@
 # rate_sheet_version=1.0.0
 # generated_at=2026-05-09T00:00:00Z
 # operator_name_en=Example Studio Inc.
+# operator_name_ko=예시 스튜디오 주식회사
+# operator_name_ja=Example Studio株式会社
+# operator_name_zh_hans=示例工作室有限公司
 pool_id,banner_id,banner_name_en,banner_name_ja,banner_start,banner_end,pity_threshold,pity_type,item_id,item_rarity,probability,name_en,name_ja
 servant_summon,fgo_v1,Featured Servant Summon,ピックアップ召喚,2026-05-01,2026-05-15,330,hard,featured_ssr,SSR,0.0080,Featured Servant,ピックアップサーヴァント
 servant_summon,fgo_v1,Featured Servant Summon,ピックアップ召喚,2026-05-01,2026-05-15,330,hard,std_ssr_a,SSR,0.0050,Standard Servant A,通常サーヴァントA
