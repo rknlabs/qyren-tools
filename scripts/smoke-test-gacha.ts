@@ -69,9 +69,21 @@ const CASES: Case[] = [
     },
   },
   {
-    label: 'hard-pity sheet missing name_ko → KR4 fail',
+    label: 'hard-pity sheet with full localization → KR4 + CN3 pass',
+    csvPath: '../public/samples/gacha/hard-pity.csv',
+    regions: ['KR', 'CN'],
+    expect: {
+      passValidator: [
+        { region: 'KR', id: 'KR4' },
+        { region: 'CN', id: 'CN3' },
+      ],
+    },
+  },
+  {
+    label: 'hard-pity sheet with name_ko stripped → KR4 fail',
     csvPath: '../public/samples/gacha/hard-pity.csv',
     regions: ['KR'],
+    mutate: (csv) => stripColumn(csv, 'name_ko'),
     expect: {
       failValidator: [{ region: 'KR', id: 'KR4' }],
     },
