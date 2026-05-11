@@ -3,6 +3,11 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { Layout } from '../../components/Layout'
 import { SEO } from '../../components/SEO'
+import { ReportBugButton } from '../../components/feedback/ReportBugButton'
+import type {
+  BugReportSubmission,
+  SubmitResult,
+} from '../../components/feedback/types'
 import { getGachaStrings, type GachaLocale } from '../../i18n/gacha'
 import { RateSheetUpload } from '../../components/gacha/RateSheetUpload'
 import { LoadedSheetSummary } from '../../components/gacha/LoadedSheetSummary'
@@ -553,6 +558,13 @@ export function ToolPage({ locale }: ToolPageProps) {
     })
   }
 
+  // Lazy-loads the feedback submit module so @supabase/storage-js stays out
+  // of the main bundle until a user actually files a bug report.
+  async function handleBugReportSubmit(input: BugReportSubmission): Promise<SubmitResult> {
+    const { submitBugReport } = await import('../../lib/feedback/submitBugReport')
+    return submitBugReport(input)
+  }
+
   async function handleCaptureSuccess(payload: { email: string }) {
     const summary = buildUsageSummary()
     trackCaptureSubmitted({ ...summary, email_domain: payload.email.split('@')[1] })
@@ -712,6 +724,13 @@ export function ToolPage({ locale }: ToolPageProps) {
             )}
           </div>
         )}
+
+        <div className="mt-12 pt-6 border-t border-divider flex items-center justify-between flex-wrap gap-2">
+          <span className="text-xs text-fg-subtle">
+            Found a bug or have feedback on this tool?
+          </span>
+          <ReportBugButton onSubmit={handleBugReportSubmit} />
+        </div>
       </div>
 
       {state.phase === 'capturing' && (
